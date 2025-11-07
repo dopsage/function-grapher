@@ -9,7 +9,7 @@ sgf::Milliseconds sgf::Canvas::getEpochTime() const
 
 sgf::Canvas::Canvas(uint width, uint height, const char* title, float drawingFrequency)
 : error(Error::NONE), height(height), isAlive(true), lastDrawTime(0),
-sfmlWindow(sf::RenderWindow(sf::VideoMode(width, height), title)), width(width)
+sfmlWindow(sf::VideoMode(width, height), title), width(width)
 {
     if(drawingFrequency <= 0.F)
     {

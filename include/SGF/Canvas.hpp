@@ -7,47 +7,46 @@
 #include <chrono>
 #include <vector>
 #include "SFML/Graphics.hpp"
+#include "SGF/InputManager.hpp"
 #include "SGF/Rectangle.hpp"
+#include "SGF/Types.hpp"
 
 namespace sgf
 {
 
-typedef unsigned long long Milliseconds;
-
-enum Error
-{
-    NONE = 0,
-    INVALID_PARAMETER
-};
-
-class Canvas
+class Canvas final
 {
 private:
-    Milliseconds                  constructionTime;
-    Error                         error;
-    Milliseconds                  frameDuration;
-    uint                          height;
-    bool                          isAlive;
-    Milliseconds                  lastDrawTime;
-    std::vector<const Rectangle*> rectangles;
-    sf::RenderWindow              sfmlWindow;
-    uint                          width;
-
-    Milliseconds getEpochTime() const;
+    Milliseconds     constructionTime;
+    float            drawingFrequency;
+    Milliseconds     frameDuration;
+    Milliseconds     getEpochTime() const;
+    InputManager     inputManager;
+    bool             isAlive;
+    Milliseconds     lastDrawTime;
+    Vector2D         position;
+    RectangleTuple   rectangles;
+    sf::RenderWindow sfmlWindow;
+    Vector2D         size;
+    const char*      title;
 
 public:
-    Canvas(uint width, uint height, const char* title, float drawingFrequency);
-    // Saves the provided `Rectangle` instance for drawing
-    void                    add(const Rectangle& rect);
-    // Returns whether the canvas is still displaying stuff
-    bool                    alive()          const;
-    bool                    draw();
-    Milliseconds            getElapsedTime() const;
-    Error                   getError()       const;
-    const sf::RenderWindow& getSfmlWindow()  const;
-    // Makes the canvas stop displaying stuff
-    void 					kill();
-    bool                    remove(const Rectangle& rect);
+    Canvas();
+    void              add(const Rectangle& rect);
+    bool              alive() const;
+    float             getDrawingFrequency() const;
+    Vector2D          getPosition() const;
+    Vector2D          getSize() const;
+    const char*       getTitle() const;
+    Milliseconds      getElapsedTime() const;
+    InputManager&     getInputManager();
+    void              kill();
+    bool              tick();
+    bool              remove(const Rectangle& rect);
+    Canvas&           setDrawingFrequency(float drawingFrequency);
+    Canvas&           setPosition(Vector2D position);
+    Canvas&           setSize(Vector2D size);
+    Canvas&           setTitle(const char* title);
 };
 
 }

@@ -5,32 +5,19 @@
 #define _RECTANGLE_HPP
 
 #include "SFML/Graphics.hpp"
+#include "SGF/Types.hpp"
 
 namespace sgf
 {
 
-typedef unsigned char byte;
-
-// Simple 2-dimensional vector data structure
-struct Vector2D
+class Rectangle final
 {
-	float x;
-	float y;
-};
+friend class Canvas;  // allows it to draw this thing fast
 
-// Simple 3-dimensional (RGB) color data structure
-struct Color3D
-{
-	byte r;
-	byte g;
-	byte b;
-};
-
-/*  */
-class Rectangle
-{
 private:
 	Color3D			   color;
+    KeyboardListener   keyboardListener;
+    MouseListener      mouseListener;
 	Vector2D 		   position;
 	int 			   priority;
 	sf::RectangleShape sfmlRect;
@@ -38,16 +25,18 @@ private:
 
 public:
 	Rectangle();
-	Rectangle(Vector2D position, Vector2D size, int priority = 0);
-	Color3D					  getColor()    const;
-	Vector2D 				  getPosition() const;
-	int 	 				  getPriority() const;
-	const sf::RectangleShape& getSfmlRect() const;
-	Vector2D 				  getSize() 	const;
-	Rectangle&				  setColor(Color3D color);
-	Rectangle& 	 			  setPosition(Vector2D position);
-	Rectangle& 	 			  setPriority(int priority);
-	Rectangle& 	 			  setSize(Vector2D size);
+	Color3D				getColor() const;
+	Vector2D 			getPosition() const;
+	int 	 			getPriority() const;
+	Vector2D 			getSize() const;
+    void                onKeyboardInput(Unicode data) const;
+    void                onMouseInput(bool isDown, Vector2D position) const;
+	Rectangle&			setColor(Color3D color);
+    Rectangle&          setKeyboardListener(KeyboardListener callback);
+    Rectangle&          setMouseListener(MouseListener callback);
+	Rectangle& 	 		setPosition(Vector2D position);
+	Rectangle& 	 		setPriority(int priority);
+	Rectangle& 	 		setSize(Vector2D size);
 };
 
 }

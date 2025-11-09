@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 
 # Add executable
-add_executable(function_grapher src/Main.cpp src/SGF/Canvas.cpp src/SGF/Rectangle.cpp)
+add_executable(function_grapher src/Main.cpp src/SGF/Canvas.cpp src/SGF/InputManager.cpp src/SGF/Rectangle.cpp)
 
 # Include local headers
 target_include_directories(function_grapher PRIVATE ${CMAKE_SOURCE_DIR}/include)

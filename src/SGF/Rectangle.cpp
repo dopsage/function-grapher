@@ -1,16 +1,16 @@
 
 #include "SGF/Rectangle.hpp"
 
-sgf::Rectangle::Rectangle()
+sgf::Rectangle::Rectangle() : 
+           color({0, 0, 0}),
+keyboardListener(nullptr),
+   mouseListener(nullptr),
+        position({0.F, 0.F}),
+        priority(0),
+        sfmlRect(),
+            size({0.F, 0.F})
 {
-	this->sfmlRect = sf::RectangleShape();
-}
-
-sgf::Rectangle::Rectangle(sgf::Vector2D position, sgf::Vector2D size, int priority) : Rectangle()
-{
-	this->setPosition(position);
-	this->setPriority(priority);
-	this->setSize(size);
+                 
 }
 
 sgf::Color3D sgf::Rectangle::getColor() const
@@ -28,14 +28,21 @@ int sgf::Rectangle::getPriority() const
 	return this->priority;
 }
 
-const sf::RectangleShape& sgf::Rectangle::getSfmlRect() const
-{
-	return this->sfmlRect;
-}
-
 sgf::Vector2D sgf::Rectangle::getSize() const
 {
 	return this->size;
+}
+
+void sgf::Rectangle::onKeyboardInput(sgf::Unicode data) const
+{
+    if(this->keyboardListener != nullptr)
+        keyboardListener(data);
+}
+
+void sgf::Rectangle::onMouseInput(bool isDown, sgf::Vector2D position) const
+{
+    if(this->mouseListener != nullptr)
+        mouseListener(isDown, position);
 }
 
 sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
@@ -43,6 +50,18 @@ sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
 	this->color = color;
 	this->sfmlRect.setFillColor(sf::Color(color.r, color.g, color.b));
 	return *this;
+}
+
+sgf::Rectangle& sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback)
+{
+    this->keyboardListener = callback;
+    return *this;
+}
+
+sgf::Rectangle& sgf::Rectangle::setMouseListener(sgf::MouseListener callback)
+{
+    this->mouseListener = callback;
+    return *this;
 }
 
 sgf::Rectangle& sgf::Rectangle::setPosition(sgf::Vector2D position)

@@ -17,6 +17,7 @@ class InputManager final
 {
 private:
     const Rectangle*      keyboardReceiver;
+    const Rectangle*      lastMouseReceiver;
     const RectangleTuple* rectangles;
 
  // make him offer realtime mouse data, or make something so it can push mouse data on ouse move (dont let canvas do input work!)
@@ -24,7 +25,7 @@ private:
 public:
     InputManager();
     void          pushKeyboardData(Unicode data);
-    void          pushMouseData(bool isDown, Vector2D position);
+    void          pushMouseData(MouseEvent event, Vector2D position);
     InputManager& setKeyboardReceiver(const Rectangle* rectangle);
     InputManager& setRectangleSource(const RectangleTuple* rectangles);
 };

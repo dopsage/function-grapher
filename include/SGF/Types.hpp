@@ -13,9 +13,10 @@ namespace sgf
     typedef unsigned char                 Byte;
     struct                                Color3D  { Byte r, g, b; };
     typedef sf::Uint32                    Unicode;
-    typedef void                        (*KeyboardListener)(Unicode data);
+    typedef void                        (*KeyboardListener)(const Rectangle* instance, Unicode data);
     typedef unsigned long long            Milliseconds;
-    typedef void                        (*MouseListener)(bool isDown, Vector2D position);
+    enum                                  MouseEvent { DOWN, MOVE, UP };
+    typedef void                        (*MouseListener)(const Rectangle* instance, MouseEvent event, Vector2D position);
     typedef std::vector<const Rectangle*> RectangleTuple;
 }
 

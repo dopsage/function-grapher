@@ -29,8 +29,12 @@ public:
 	Vector2D 			getPosition() const;
 	int 	 			getPriority() const;
 	Vector2D 			getSize() const;
+    float               getHeight() const;
+    float               getWidth() const;
+    float               getX() const;
+    float               getY() const;
     void                onKeyboardInput(Unicode data) const;
-    void                onMouseInput(bool isDown, Vector2D position) const;
+    void                onMouseInput(MouseEvent event, Vector2D position) const;
 	Rectangle&			setColor(Color3D color);
     Rectangle&          setKeyboardListener(KeyboardListener callback);
     Rectangle&          setMouseListener(MouseListener callback);

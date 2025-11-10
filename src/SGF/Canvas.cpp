@@ -94,19 +94,20 @@ bool sgf::Canvas::tick()
                 isAlive = false;
                 sfmlWindow.close();
                 return false;
-            
+            // Provide input manager with keyboard & mouse data
             case sf::Event::TextEntered:
                 inputManager.pushKeyboardData(event.text.unicode);
                 break;
-            
             case sf::Event::MouseButtonPressed:
                 if(event.mouseButton.button == sf::Mouse::Button::Left)
-                    inputManager.pushMouseData(true, { event.mouseButton.x, event.mouseButton.y });
+                    inputManager.pushMouseData(sgf::MouseEvent::DOWN, { event.mouseButton.x, event.mouseButton.y });
                 break;
-                
+            case sf::Event::MouseMoved:
+                inputManager.pushMouseData(sgf::MouseEvent::MOVE, { event.mouseMove.x, event.mouseMove.y });
+                break;
             case sf::Event::MouseButtonReleased:
                 if(event.mouseButton.button == sf::Mouse::Button::Left)
-                    inputManager.pushMouseData(false, { event.mouseButton.x, event.mouseButton.y });
+                    inputManager.pushMouseData(sgf::MouseEvent::UP, { event.mouseButton.x, event.mouseButton.y });
                 break;
         }
     

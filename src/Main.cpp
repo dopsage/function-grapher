@@ -11,15 +11,18 @@
 // listeners that are appropriatelly activated by IM. code is not pretty bc it was made to work, refactor should be done to not lose yourself here.!.!.!
 
 static sgf::Rectangle background;
-static sgf::Rectangle button;
+static sgf::Rectangle button1;
+static sgf::Rectangle button2;
+static sgf::Rectangle button3;
+static sgf::Rectangle button4;
 static sgf::Canvas    canvas;
 
 void onStart();
 void onPaint();
 void onFinish();
 
-void onButtonKeyboardCallback(sgf::Unicode data);
-void onButtonMouseCallback(bool isDown, sgf::Vector2D position);
+void onButtonKeyboardCallback(const sgf::Rectangle* instance, sgf::Unicode data);
+void onButtonMouseCallback(const sgf::Rectangle* instance, sgf::MouseEvent event, sgf::Vector2D position);
 
 int main()
 {
@@ -40,24 +43,48 @@ void onStart()
     canvas.setDrawingFrequency(30.F)
           .setSize({ 600, 400 })
           .setTitle("Simple GUI Framework")
-          .getInputManager().setKeyboardReceiver(&button);
+          .getInputManager().setKeyboardReceiver(&button1);
           
     background.setColor({ 255, 0, 0 })
               .setPosition({0.F, 0.F})
               .setPriority(0)
               .setSize(canvas.getSize());
               
-    button.setColor({ 0, 255, 0 })
-          .setKeyboardListener(onButtonKeyboardCallback)
-          .setMouseListener(onButtonMouseCallback)
-          .setPosition({ 50.F, 50.F })
-          .setPriority(1)
-          .setSize({ 150.F, 75.F });
+    button1.setColor({ 0, 255, 0 })
+           .setKeyboardListener(onButtonKeyboardCallback)
+           .setMouseListener(onButtonMouseCallback)
+           .setPosition({ 50.F, 50.F })
+           .setPriority(1)
+           .setSize({ 150.F, 75.F });
+           
+    button2.setColor({ 255, 255, 0 })
+           .setKeyboardListener(onButtonKeyboardCallback)
+           .setMouseListener(onButtonMouseCallback)
+           .setPosition({ 50.F, 50.F })
+           .setPriority(1)
+           .setSize({ 150.F, 75.F });
+           
+    button3.setColor({ 0, 255, 255 })
+           .setKeyboardListener(onButtonKeyboardCallback)
+           .setMouseListener(onButtonMouseCallback)
+           .setPosition({ 50.F, 50.F })
+           .setPriority(1)
+           .setSize({ 150.F, 75.F });
+           
+    button4.setColor({ 255, 255, 255 })
+           .setKeyboardListener(onButtonKeyboardCallback)
+           .setMouseListener(onButtonMouseCallback)
+           .setPosition({ 50.F, 50.F })
+           .setPriority(1)
+           .setSize({ 150.F, 75.F });
 
     // Configure instances
     
     canvas.add(background);
-    canvas.add(button);
+    canvas.add(button1);
+    canvas.add(button2);
+    canvas.add(button3);
+    canvas.add(button4);
     
     std::cout << "Canvas is alive" << std::endl;
 }
@@ -72,13 +99,34 @@ void onFinish()
     std::cout << "Canvas got killed" << std::endl;
 }
 
-void onButtonKeyboardCallback(sgf::Unicode data)
+void onButtonKeyboardCallback(const sgf::Rectangle* instance, sgf::Unicode data)
 {
-    std::cout << "Keyboard: " << data << ", time=" << canvas.getElapsedTime() << std::endl;
+    
 }
 
-void onButtonMouseCallback(bool isDown, sgf::Vector2D position)
+// It works like a "methodic class", just need to use it as listener for your rectangle and behaviour is just adjusted
+// to the event-receiving instance... it is new approach i must say, never seen such but it looks kinda good.
+static bool isMouseDown;
+static sgf::Vector2D dragOffset;
+void onButtonMouseCallback(const sgf::Rectangle* instance, sgf::MouseEvent event, sgf::Vector2D position)
 {
-    std::cout << "Mouse: " << isDown << " | " << position.x << "," << position.y <<
-    ", time=" << canvas.getElapsedTime() << std::endl;
+    sgf::Rectangle* receiver = (sgf::Rectangle*)instance; // This is so goofy, but does the job for this example
+    
+    // Manage rectangle dragging by means of mouse device
+    if(event == sgf::MouseEvent::DOWN)
+    {
+        isMouseDown = true;
+        dragOffset = sgf::Vector2D({ position.x - receiver->getX(), position.y - receiver->getY() });
+    }
+    else if(event == sgf::MouseEvent::MOVE && isMouseDown)
+    {
+        receiver->setPosition(sgf::Vector2D({
+            position.x - dragOffset.x,
+            position.y - dragOffset.y
+        }));
+    }
+    else if(event == sgf::MouseEvent::UP)
+    {
+        isMouseDown = false;
+    }
 }

@@ -33,16 +33,35 @@ sgf::Vector2D sgf::Rectangle::getSize() const
 	return this->size;
 }
 
+float sgf::Rectangle::getHeight() const
+{
+    return this->size.y;
+}
+
+float sgf::Rectangle::getWidth() const
+{
+    return this->size.x;
+}
+
+float sgf::Rectangle::getX() const
+{
+    return this->position.x;
+}
+float sgf::Rectangle::getY() const
+{
+    return this->position.y;
+}
+
 void sgf::Rectangle::onKeyboardInput(sgf::Unicode data) const
 {
     if(this->keyboardListener != nullptr)
-        keyboardListener(data);
+        keyboardListener(this, data);
 }
 
-void sgf::Rectangle::onMouseInput(bool isDown, sgf::Vector2D position) const
+void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position) const
 {
     if(this->mouseListener != nullptr)
-        mouseListener(isDown, position);
+        mouseListener(this, event, position);
 }
 
 sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)

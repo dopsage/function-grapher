@@ -4,7 +4,9 @@
 sgf::Rectangle::Rectangle() : 
            color({0, 0, 0}),
 keyboardListener(nullptr),
+ keyboardPayload(nullptr),
    mouseListener(nullptr),
+    mousePayload(nullptr),
         position({0.F, 0.F}),
         priority(0),
         sfmlRect(),
@@ -35,33 +37,33 @@ sgf::Vector2D sgf::Rectangle::getSize() const
 
 float sgf::Rectangle::getHeight() const
 {
-    return this->size.y;
+    return this->getSize().y;
 }
 
 float sgf::Rectangle::getWidth() const
 {
-    return this->size.x;
+    return this->getSize().x;
 }
 
 float sgf::Rectangle::getX() const
 {
-    return this->position.x;
+    return this->getPosition().x;
 }
 float sgf::Rectangle::getY() const
 {
-    return this->position.y;
+    return this->getPosition().y;
 }
 
 void sgf::Rectangle::onKeyboardInput(sgf::Unicode data) const
 {
     if(this->keyboardListener != nullptr)
-        keyboardListener(this, data);
+        keyboardListener(data, this->keyboardPayload);
 }
 
 void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position) const
 {
     if(this->mouseListener != nullptr)
-        mouseListener(this, event, position);
+        mouseListener(event, position, this->mousePayload);
 }
 
 sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
@@ -71,15 +73,17 @@ sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
 	return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback)
+sgf::Rectangle& sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback, void* payload)
 {
     this->keyboardListener = callback;
+    this->keyboardPayload  = payload;
     return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setMouseListener(sgf::MouseListener callback)
+sgf::Rectangle& sgf::Rectangle::setMouseListener(sgf::MouseListener callback, void* payload)
 {
     this->mouseListener = callback;
+    this->mousePayload  = payload;
     return *this;
 }
 

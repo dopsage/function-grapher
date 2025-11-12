@@ -1,7 +1,11 @@
 
+/*** CODE OF ALL SOURCES IS MESSY BUT THIS IS INTENDED, NOW IT NEEDS REFACTORING PHASE QUICK
+ *** BEFORE I FORGOT THE COMPLEXITY THOUGH. ***/
+
 #include <iostream>
 #include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
+#include "SGF/Slider.hpp"
 #include "SGF/Types.hpp"
 
 // TODO: Write docs to hpp and cpps because it is gettin big!
@@ -10,19 +14,19 @@
 // Canvas controls how inputmanager perceives, input manager invokes appropriate callbacks of given rectangle tuple, those rects define list of
 // listeners that are appropriatelly activated by IM. code is not pretty bc it was made to work, refactor should be done to not lose yourself here.!.!.!
 
-static sgf::Rectangle background;
-static sgf::Rectangle button1;
-static sgf::Rectangle button2;
-static sgf::Rectangle button3;
-static sgf::Rectangle button4;
+static sgf::Rectangle mainBackground;
+static sgf::Slider    slider;
+static sgf::Slider 	  S2;
 static sgf::Canvas    canvas;
 
 void onStart();
 void onPaint();
 void onFinish();
 
-void onButtonKeyboardCallback(const sgf::Rectangle* instance, sgf::Unicode data);
-void onButtonMouseCallback(const sgf::Rectangle* instance, sgf::MouseEvent event, sgf::Vector2D position);
+void onKeyboardEvent(sgf::Unicode data, void* payload)
+{
+	std::cout << data << " | " << *(int*)payload << std::endl;
+}
 
 int main()
 {
@@ -36,97 +40,46 @@ int main()
     return 0;
 }
 
+// must be staticly scoped, otherwise referencing it as payload is dangerous!
+// it happens because stack is scoped on main, but events happen afterwards thus x
+// becomes unknown just after main ends...
+static int x = 2137;
+
 void onStart()
 {
     // Initialize variables
     
-    canvas.setDrawingFrequency(30.F)
+    canvas.setDrawingFrequency(60.F)
           .setSize({ 600, 400 })
-          .setTitle("Simple GUI Framework")
-          .getInputManager().setKeyboardReceiver(&button1);
-          
-    background.setColor({ 255, 0, 0 })
-              .setPosition({0.F, 0.F})
-              .setPriority(0)
-              .setSize(canvas.getSize());
-              
-    button1.setColor({ 0, 255, 0 })
-           .setKeyboardListener(onButtonKeyboardCallback)
-           .setMouseListener(onButtonMouseCallback)
-           .setPosition({ 50.F, 50.F })
-           .setPriority(1)
-           .setSize({ 150.F, 75.F });
-           
-    button2.setColor({ 255, 255, 0 })
-           .setKeyboardListener(onButtonKeyboardCallback)
-           .setMouseListener(onButtonMouseCallback)
-           .setPosition({ 50.F, 50.F })
-           .setPriority(1)
-           .setSize({ 150.F, 75.F });
-           
-    button3.setColor({ 0, 255, 255 })
-           .setKeyboardListener(onButtonKeyboardCallback)
-           .setMouseListener(onButtonMouseCallback)
-           .setPosition({ 50.F, 50.F })
-           .setPriority(1)
-           .setSize({ 150.F, 75.F });
-           
-    button4.setColor({ 255, 255, 255 })
-           .setKeyboardListener(onButtonKeyboardCallback)
-           .setMouseListener(onButtonMouseCallback)
-           .setPosition({ 50.F, 50.F })
-           .setPriority(1)
-           .setSize({ 150.F, 75.F });
+          .setTitle("Simple GUI Framework").getInputManager().setKeyboardReceiver(&mainBackground);
+    mainBackground.setColor({ 255, 0, 0 })
+				  .setPosition({ 0.F, 0.F })
+				  .setPriority(0)
+				  .setSize(canvas.getSize()).setKeyboardListener(onKeyboardEvent, &x);
+    slider.setColor({ 0, 255, 0 })
+		  .setPosition({ 100.F, 100.F })
+		  .setPriority(1)
+		  .setSize({ 50.F, canvas.getHeight() / 2 });
+	S2.setColor({ 0, 0, 255 })
+		  .setPosition({ 130.F, 120.F })
+		  .setPriority(2)
+		  .setSize({ 50.F, canvas.getHeight() / 2 });
 
     // Configure instances
     
-    canvas.add(background);
-    canvas.add(button1);
-    canvas.add(button2);
-    canvas.add(button3);
-    canvas.add(button4);
-    
-    std::cout << "Canvas is alive" << std::endl;
+    canvas.add(mainBackground);
+    canvas.add(slider);
+    canvas.add(S2);
+    canvas.add(slider.getHandle());  // make it more comfy in futurrrrrrr...
+	canvas.add(S2.getHandle());
 }
 
 void onPaint()
 {
-    
+	//std::cout << "Debug: " << slider.getHandle().getPriority() << std::endl;
 }
 
 void onFinish()
 {
-    std::cout << "Canvas got killed" << std::endl;
-}
-
-void onButtonKeyboardCallback(const sgf::Rectangle* instance, sgf::Unicode data)
-{
-    
-}
-
-// It works like a "methodic class", just need to use it as listener for your rectangle and behaviour is just adjusted
-// to the event-receiving instance... it is new approach i must say, never seen such but it looks kinda good.
-static bool isMouseDown;
-static sgf::Vector2D dragOffset;
-void onButtonMouseCallback(const sgf::Rectangle* instance, sgf::MouseEvent event, sgf::Vector2D position)
-{
-    sgf::Rectangle* receiver = (sgf::Rectangle*)instance; // This is so goofy, but does the job for this example
-    
-    // Manage rectangle dragging by means of mouse device
-    if(event == sgf::MouseEvent::DOWN)
-    {
-        isMouseDown = true;
-        dragOffset = sgf::Vector2D({ position.x - receiver->getX(), position.y - receiver->getY() });
-    }
-    else if(event == sgf::MouseEvent::MOVE && isMouseDown)
-    {
-        receiver->setPosition(sgf::Vector2D({
-            position.x - dragOffset.x,
-            position.y - dragOffset.y
-        }));
-    }
-    else if(event == sgf::MouseEvent::UP)
-    {
-        isMouseDown = false;
-    }
+	
 }

@@ -50,6 +50,16 @@ float sgf::Canvas::getDrawingFrequency() const
     return this->drawingFrequency;
 }
 
+float sgf::Canvas::getHeight() const
+{
+	return this->size.y;
+}
+
+float sgf::Canvas::getWidth() const
+{
+	return this->size.x;
+}
+
 sgf::Vector2D sgf::Canvas::getPosition() const
 {
     return this->position;
@@ -73,6 +83,16 @@ sgf::Milliseconds sgf::Canvas::getElapsedTime() const
 sgf::InputManager& sgf::Canvas::getInputManager()
 {
     return this->inputManager;
+}
+
+float sgf::Canvas::getX() const
+{
+	return this->position.x;
+}
+
+float sgf::Canvas::getY() const
+{
+	return this->position.y;
 }
 
 void sgf::Canvas::kill()

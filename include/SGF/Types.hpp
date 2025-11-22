@@ -7,7 +7,7 @@
 namespace sgf
 {
     class                                 Canvas;
-    class                                 InputManager;
+    class                                 InputParser;
     class                                 Rectangle;
     class 								  Slider;
     struct                                Vector2D { float x, y; };

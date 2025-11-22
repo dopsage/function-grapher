@@ -7,13 +7,16 @@
 #include <chrono>
 #include <vector>
 #include "SFML/Graphics.hpp"
-#include "SGF/InputManager.hpp"
+#include "SGF/InputParser.hpp"
 #include "SGF/Rectangle.hpp"
 #include "SGF/Types.hpp"
 
 namespace sgf
 {
 
+/* Core of SGF, it facilitates rendering of a window and its contents in form of
+ * simple rectangular areas (Rectangle instances) by wrapping SFML features in a
+ * way that makes the framework intuitive and primitive (but simple).  */
 class Canvas final
 {
 private:
@@ -21,7 +24,7 @@ private:
     float            drawingFrequency;
     Milliseconds     frameDuration;
     Milliseconds     getEpochTime() const;
-    InputManager     inputManager;
+    InputParser      inputParser;
     bool             isAlive;
     Milliseconds     lastDrawTime;
     Vector2D         position;
@@ -32,25 +35,25 @@ private:
 
 public:
     Canvas();
-    void              add(const Rectangle& rect);
-    bool              alive() const;
-    float             getDrawingFrequency() const;
-    float 			  getHeight() const;
-    float 			  getWidth() const;
-    Vector2D          getPosition() const;
-    Vector2D          getSize() const;
-    const char*       getTitle() const;
-    Milliseconds      getElapsedTime() const;
-    InputManager&     getInputManager();
-    float 			  getX() const;
-    float 			  getY() const;
-    void              kill();
-    bool              tick();
-    bool              remove(const Rectangle& rect);
-    Canvas&           setDrawingFrequency(float drawingFrequency);
-    Canvas&           setPosition(Vector2D position);
-    Canvas&           setSize(Vector2D size);
-    Canvas&           setTitle(const char* title);
+    void         add(const Rectangle& rect);
+    bool         alive() const;
+    float        getDrawingFrequency() const;
+    float 		 getHeight() const;
+    float 		 getWidth() const;
+    Vector2D     getPosition() const;
+    Vector2D     getSize() const;
+    const char*  getTitle() const;
+    Milliseconds getElapsedTime() const;
+    InputParser& getInputParser();
+    float 		 getX() const;
+    float 		 getY() const;
+    void         kill();
+    bool         tick();
+    bool         remove(const Rectangle& rect);
+    Canvas&      setDrawingFrequency(float drawingFrequency);
+    Canvas&      setPosition(Vector2D position);
+    Canvas&      setSize(Vector2D size);
+    Canvas&      setTitle(const char* title);
 };
 
 }

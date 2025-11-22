@@ -9,12 +9,13 @@ sgf::Milliseconds sgf::Canvas::getEpochTime() const
 
 sgf::Canvas::Canvas() :
 constructionTime(getEpochTime()),
+     inputParser(),
          isAlive(true),
     lastDrawTime(0),
       rectangles(),
       sfmlWindow(sf::VideoMode(1, 1), "", sf::Style::Titlebar | sf::Style::Close)
 {
-    this->inputManager.setRectangleSource(&rectangles);
+    this->inputParser.setRectangleSource(&rectangles);
     this->setDrawingFrequency(60.F);
     this->setPosition({0.F, 0.F});
     this->setSize({128.F, 128.F});
@@ -23,20 +24,17 @@ constructionTime(getEpochTime()),
     sfmlWindow.setKeyRepeatEnabled(false);
 }
 
-// TODO: Better describe process of this method ...
 void sgf::Canvas::add(const Rectangle& rect)
 {
-    /* ALGORITHM.
-     * Rectangles array remains sorted according to priority, from smallest to highest.
-     * Order for later drawing in equal priorities is also preserved. */ 
+    /* After addition to rectangles tuple, remain it sorted according to priority
+     * from smallest to highest. Order for later drawing in case of equal priorities
+     * is fully preserved. */ 
     for(int index = 0; index < rectangles.size(); index++)
-        if(rectangles.at(index)->priority > rect.priority)
+        if(rectangles.at(index)->getPriority() > rect.getPriority())
         {
             rectangles.insert(rectangles.begin() + index, &rect);
             return;
         }
-  
-    // There is no higher priority ...
     rectangles.push_back(&rect);
 }
 
@@ -80,9 +78,9 @@ sgf::Milliseconds sgf::Canvas::getElapsedTime() const
     return getEpochTime() - this->constructionTime;
 }
 
-sgf::InputManager& sgf::Canvas::getInputManager()
+sgf::InputParser& sgf::Canvas::getInputParser()
 {
-    return this->inputManager;
+    return this->inputParser;
 }
 
 float sgf::Canvas::getX() const
@@ -100,12 +98,10 @@ void sgf::Canvas::kill()
 	this->isAlive = false;
 }
 
-// TODO: Better describe process of this method ...
 bool sgf::Canvas::tick()
 {
     if(!isAlive) return false;
     
-    // Pass data for IM to work on...
     sf::Event event;
     while (sfmlWindow.pollEvent(event))
         switch(event.type)
@@ -114,20 +110,10 @@ bool sgf::Canvas::tick()
                 isAlive = false;
                 sfmlWindow.close();
                 return false;
-            // Provide input manager with keyboard & mouse data
-            case sf::Event::TextEntered:
-                inputManager.pushKeyboardData(event.text.unicode);
-                break;
-            case sf::Event::MouseButtonPressed:
-                if(event.mouseButton.button == sf::Mouse::Button::Left)
-                    inputManager.pushMouseData(sgf::MouseEvent::DOWN, { event.mouseButton.x, event.mouseButton.y });
-                break;
-            case sf::Event::MouseMoved:
-                inputManager.pushMouseData(sgf::MouseEvent::MOVE, { event.mouseMove.x, event.mouseMove.y });
-                break;
-            case sf::Event::MouseButtonReleased:
-                if(event.mouseButton.button == sf::Mouse::Button::Left)
-                    inputManager.pushMouseData(sgf::MouseEvent::UP, { event.mouseButton.x, event.mouseButton.y });
+            /* The rest of events are passed to the input parser, which interprets
+             * them in context of all rectangles */
+            default:
+                inputParser.parseSfmlEvent(event);
                 break;
         }
     
@@ -136,7 +122,7 @@ bool sgf::Canvas::tick()
     {
         sfmlWindow.clear();
         
-        // Draw rectangles...
+        // Draw rectangles by exploiting their one-way magic of friendship
         for(const Rectangle* rect : rectangles)
             sfmlWindow.draw(rect->sfmlRect);
         
@@ -149,7 +135,6 @@ bool sgf::Canvas::tick()
     return false;
 }
 
-// TODO: Better describe process of this method ...
 bool sgf::Canvas::remove(const Rectangle& rect)
 {
     // Remove if there is such rectangle added.

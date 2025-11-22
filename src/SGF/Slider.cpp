@@ -57,8 +57,7 @@ float sgf::Slider::getValue() const
 sgf::Rectangle& sgf::Slider::setColor(Color3D color)
 {
 	sgf::Rectangle::setColor(color);
-	
-	// Define default handle color ...
+    // Handle color is an inverse of the background color set
 	this->handle.setColor({ 255 - color.r, 255 - color.g, 255 - color.b });
 	return *this;
 }

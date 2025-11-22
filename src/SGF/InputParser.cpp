@@ -1,38 +1,25 @@
 
 #include "SGF/InputParser.hpp"
 
+const sgf::Rectangle* sgf::InputParser::getHoveredRectangle(const sgf::Vector2D& position) const
+{
+    const sgf::Rectangle* receiver = nullptr;
+    for(const sgf::Rectangle* rect : *rectangles)
+        if(receiver == nullptr ||
+          (position.x >= rect->getX() &&
+           position.y >= rect->getY() &&
+           position.x <= rect->getX() + rect->getWidth()  &&
+           position.y <= rect->getY() + rect->getHeight() &&
+           rect->getPriority() >= receiver->getPriority()))
+            receiver = rect;
+    return receiver;
+}
+
 sgf::InputParser::InputParser() :
-lastMouseReceiver(nullptr)
+mouseReceiver(nullptr)
 {
     
 }
-
-//void sgf::InputParser::parseMouseData(sgf::MouseEvent event, sgf::Vector2D position)
-//{
-    //if(rectangles == nullptr) return;
-    
-    //// Find out which rectangle shall receive the mouse data, take rectangle priorities into account.
-    //const sgf::Rectangle* receiver = nullptr;
-    //for(const sgf::Rectangle* rect : *rectangles)
-        //if(receiver == nullptr ||
-          //(position.x >= rect->getX() &&
-           //position.y >= rect->getY() &&
-           //position.x <= rect->getX() + rect->getWidth()  &&
-           //position.y <= rect->getY() + rect->getHeight() &&
-           //rect->getPriority() >= receiver->getPriority()))
-            //receiver = rect;
-    
-    //// If mouse exited area of the previous rectangle, inform it about that by simulating mouse up event.
-    //if(lastMouseReceiver != nullptr && receiver != lastMouseReceiver)
-        //lastMouseReceiver->onMouseInput(sgf::MouseEvent::UP, position);
-    
-    //// If some rectangle was found under the mouse coordinates, feed him the event data.
-    //if(receiver != nullptr)
-    //{
-        //receiver->onMouseInput(event, position);
-        //lastMouseReceiver = receiver;
-    //}
-//}
 
 void sgf::InputParser::parseSfmlEvent(const sf::Event& event)
 {
@@ -41,15 +28,27 @@ void sgf::InputParser::parseSfmlEvent(const sf::Event& event)
         case sf::Event::TextEntered:
             keyboardReceiver->onKeyboardInput(event.text.unicode);
             break;
-            
-// TODO: Implement mouse event interpreter below
+        /* It allows an event receiver to capture the mouse; so while left mouse
+         * button is held, events still arrive to the receiver despite the mouse
+         * not hovering it. */
         case sf::Event::MouseButtonPressed:
-            if(event.mouseButton.button == sf::Mouse::Button::Left) { }
+            if(event.mouseButton.button == sf::Mouse::Button::Left)
+            {
+                sgf::Vector2D position = { event.mouseButton.x, event.mouseButton.y };
+                mouseReceiver = getHoveredRectangle(position);
+                mouseReceiver->onMouseInput(sgf::MouseEvent::DOWN, position);
+            }
             break;
         case sf::Event::MouseMoved:
+            if(mouseReceiver != nullptr)
+                mouseReceiver->onMouseInput(sgf::MouseEvent::MOVE, { event.mouseMove.x, event.mouseMove.y });
             break;
         case sf::Event::MouseButtonReleased:
-            if(event.mouseButton.button == sf::Mouse::Button::Left) { }
+            if(mouseReceiver != nullptr)
+            {
+                mouseReceiver->onMouseInput(sgf::MouseEvent::UP, { event.mouseButton.x, event.mouseButton.y });
+                mouseReceiver = nullptr;
+            }
             break;
     }
 }

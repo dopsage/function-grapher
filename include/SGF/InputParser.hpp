@@ -16,8 +16,9 @@ namespace sgf
 class InputParser final
 {
 private:
+    const Rectangle*      getHoveredRectangle(const Vector2D& position) const;
     const Rectangle*      keyboardReceiver;
-    const Rectangle*      lastMouseReceiver;
+    const Rectangle*      mouseReceiver;
     const RectangleTuple* rectangles;
 
 public:

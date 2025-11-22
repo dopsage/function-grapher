@@ -20,11 +20,14 @@ private:
 	float 		handleDeltaY;
 	bool 		isHandleMouseDown;
 	static void onHandleMouseEvent(MouseEvent event, Vector2D position, void* payload);
+    
+    // The callback is invoked when the slider value changes
+    SliderListener sliderListener;
+    void*          sliderPayload;
+    
 	float  	    value;
 
 public:
-	static const float HANDLE_HEIGHT;
-
 	Slider();
 	const Rectangle& getHandle() const;
     
@@ -39,7 +42,8 @@ public:
 	Rectangle& 		 setPosition(Vector2D position) override;
 	Rectangle& 		 setPriority(int priority) override;
 	Rectangle& 		 setSize(Vector2D size) override;
-	void 	   		 setHandleHeight(float height);
+    Slider&          setSliderListener(SliderListener callback, void* payload);
+	Slider&    		 setHandleHeight(float height);
 };
 
 }

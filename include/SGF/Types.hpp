@@ -19,6 +19,7 @@ namespace sgf
     enum                                  MouseEvent { DOWN, MOVE, UP };
     typedef void                        (*MouseListener)(MouseEvent event, Vector2D position, void* payload);
     typedef std::vector<const Rectangle*> RectangleTuple;
+    typedef void                        (*SliderListener)(float value, void* payload);
 }
 
 #endif

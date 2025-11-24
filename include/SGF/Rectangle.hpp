@@ -10,58 +10,57 @@
 namespace sgf
 {
 
-/* Literal SFML drawable rectangle wrapper, that introduces features of a primitive interactive
- * rectangular area. */
+/* Literal SFML drawable rectangle wrapper, that introduces features of a primitive
+ * interactive rectangular area. */
 class Rectangle
 {
     // Allow canvas to access `sfmlRect` in drawing purposes, we trust it on this
     friend class Canvas;
 
 private:
+    Canvas*            canvas;
 	Color3D	           color;
-    
-    /* Marked as mutable because onKeyboardInput/onMouseInput use and do not change them, but
-     * it is not guaranteed that the set listener callback methods adhere to this rule too, they
-     * may actually write pointed payload. */
-    mutable KeyboardListener keyboardListener;
-    mutable void*			 keyboardPayload;
-    mutable MouseListener    mouseListener;
-    mutable void*			 mousePayload;
-	
+    int                id;
+    KeyboardListener   keyboardListener;
+    MouseListener      mouseListener;
+    void*              meta;
     Vector2D 		   position;
 	int 			   priority;
 	sf::RectangleShape sfmlRect;
 	Vector2D 		   size;
+    bool               visible;
 
 public:
 	Rectangle();
 	virtual ~Rectangle() = default;
+    bool             contains(Vector2D position) const;
 	virtual Color3D	 getColor() const;
+    int              getID() const;
+    void*            getMeta();
 	virtual Vector2D getPosition() const;
 	int 	 		 getPriority() const;
 	virtual Vector2D getSize() const;
     float            getHeight() const;
     float            getWidth() const;
+    virtual bool     getVisible() const;
     float            getX() const;
     float            getY() const;
     
-    /* These two methods invoke keyboard and mouse listeners together with their respective payloads
-     * in form of unspecified pointers (void*) set earlier.  */ 
-    void                onKeyboardInput(Unicode data) const;
-    void                onMouseInput(MouseEvent event, Vector2D position) const;
+    // These two methods invoke keyboard and mouse listeners with given parameters 
+    void               onKeyboardInput(Unicode data);
+    void               onMouseInput(MouseEvent event, Vector2D position);
 	
-    virtual Rectangle&	setColor(Color3D color);
+    virtual Rectangle& setColor(Color3D color);
     
-    /* Rectangle can store only one callback method per device. Additionally there is a possibility
-     * of passing some payload, which set callbacks will receive as the last parameter.
-     * You can use payload to let callback functions access some external data, but YOU MUST BE SURE
-     * about what the payload really is, because you will need to cast it to appropriate pointer. */
-    Rectangle&          setKeyboardListener(KeyboardListener callback, void* payload);
-    Rectangle&          setMouseListener(MouseListener callback, void* payload);
+    // Rectangle can store only one callback method per device.
+    Rectangle&         setKeyboardListener(KeyboardListener callback);
+    Rectangle&         setMouseListener(MouseListener callback);
     
-    virtual Rectangle& 	setPosition(Vector2D position);
-	virtual Rectangle& 	setPriority(int priority);
-	virtual Rectangle& 	setSize(Vector2D size);
+    Rectangle&         setMeta(void* meta);
+    virtual Rectangle& setPosition(Vector2D position);
+	virtual Rectangle& setPriority(int priority);
+	virtual Rectangle& setSize(Vector2D size);
+    virtual Rectangle& setVisible(bool visible);
 };
 
 }

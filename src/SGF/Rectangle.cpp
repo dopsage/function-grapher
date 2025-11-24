@@ -4,20 +4,38 @@
 sgf::Rectangle::Rectangle() : 
            color({0, 0, 0}),
 keyboardListener(nullptr),
- keyboardPayload(nullptr),
    mouseListener(nullptr),
-    mousePayload(nullptr),
+            meta(nullptr),
         position({0.F, 0.F}),
         priority(0),
         sfmlRect(),
-            size({0.F, 0.F})
+            size({0.F, 0.F}),
+         visible(true)
 {
                  
+}
+
+bool sgf::Rectangle::contains(sgf::Vector2D position) const
+{
+    return position.x >= this->position.x &&
+           position.y >= this->position.y &&
+           position.x <= this->position.x + this->size.x &&
+           position.y <= this->position.y + this->size.y;
 }
 
 sgf::Color3D sgf::Rectangle::getColor() const
 {
 	return this->color;
+}
+
+int sgf::Rectangle::getID() const
+{
+    return this->id;
+}
+
+void* sgf::Rectangle::getMeta()
+{
+    return this->meta;
 }
 
 sgf::Vector2D sgf::Rectangle::getPosition() const
@@ -45,6 +63,11 @@ float sgf::Rectangle::getWidth() const
     return this->getSize().x;
 }
 
+bool sgf::Rectangle::getVisible() const
+{
+    return this->visible;
+}
+
 float sgf::Rectangle::getX() const
 {
     return this->getPosition().x;
@@ -54,16 +77,16 @@ float sgf::Rectangle::getY() const
     return this->getPosition().y;
 }
 
-void sgf::Rectangle::onKeyboardInput(sgf::Unicode data) const
+void sgf::Rectangle::onKeyboardInput(sgf::Unicode data)
 {
-    if(this->keyboardListener != nullptr)
-        keyboardListener(data, this->keyboardPayload);
+    if(this->visible && this->keyboardListener != nullptr)
+        keyboardListener(data, this->id, this->canvas);
 }
 
-void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position) const
+void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position)
 {
-    if(this->mouseListener != nullptr)
-        mouseListener(event, position, this->mousePayload);
+    if(this->visible && this->mouseListener != nullptr)
+        mouseListener(event, position, this->id, this->canvas);
 }
 
 sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
@@ -73,17 +96,21 @@ sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
 	return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback, void* payload)
+sgf::Rectangle& sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback)
 {
     this->keyboardListener = callback;
-    this->keyboardPayload  = payload;
     return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setMouseListener(sgf::MouseListener callback, void* payload)
+sgf::Rectangle& sgf::Rectangle::setMouseListener(sgf::MouseListener callback)
 {
     this->mouseListener = callback;
-    this->mousePayload  = payload;
+    return *this;
+}
+
+sgf::Rectangle& sgf::Rectangle::setMeta(void* meta)
+{
+    this->meta = meta;
     return *this;
 }
 
@@ -106,3 +133,10 @@ sgf::Rectangle& sgf::Rectangle::setSize(sgf::Vector2D size)
 	this->sfmlRect.setSize(sf::Vector2f(size.x, size.y));
 	return *this;
 }
+
+sgf::Rectangle& sgf::Rectangle::setVisible(bool visible)
+{
+    this->visible = visible;
+    return *this;
+}
+

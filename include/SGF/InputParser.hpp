@@ -11,21 +11,22 @@
 namespace sgf
 {
 
-/* Defines how rectangles contained in a specified source tuple are receiving SFML keyboard and mouse
- * events. The class also introduces lots of custom events, that are pretty useful. */
+/* Defines how rectangles contained in a specified source vector are receiving SFML
+ * keyboard and mouse events. The class also introduces lots of custom events, that
+ * are pretty useful. */
 class InputParser final
 {
 private:
-    const Rectangle*      getHoveredRectangle(const Vector2D& position) const;
-    const Rectangle*      keyboardReceiver;
-    const Rectangle*      mouseReceiver;
-    const RectangleTuple* rectangles;
+    Rectangle*       getHoveredRectangle(const Vector2D& position) const;
+    Rectangle*       keyboardReceiver;
+    Rectangle*       mouseReceiver;
+    RectangleVector* rectangles;
 
 public:
     InputParser();
     void         parseSfmlEvent(const sf::Event& event);
-    InputParser& setKeyboardReceiver(const Rectangle* rectangle);
-    InputParser& setRectangleSource(const RectangleTuple* rectangles);
+    InputParser& setKeyboardReceiver(Rectangle* rectangle);
+    InputParser& setRectangleSource(RectangleVector* rectangles);
 };
 
 }

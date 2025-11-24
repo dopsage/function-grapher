@@ -28,14 +28,15 @@ private:
     bool             isAlive;
     Milliseconds     lastDrawTime;
     Vector2D         position;
-    RectangleTuple   rectangles;
+    RectangleVector  rectangles;
+    int              rectCount;
     sf::RenderWindow sfmlWindow;
     Vector2D         size;
     const char*      title;
 
 public:
     Canvas();
-    void         add(const Rectangle& rect);
+    void         add(Rectangle& rect);
     bool         alive() const;
     float        getDrawingFrequency() const;
     float 		 getHeight() const;
@@ -45,11 +46,11 @@ public:
     const char*  getTitle() const;
     Milliseconds getElapsedTime() const;
     InputParser& getInputParser();
+    Rectangle*   getRectangle(int id);
     float 		 getX() const;
     float 		 getY() const;
     void         kill();
     bool         tick();
-    bool         remove(const Rectangle& rect);
     Canvas&      setDrawingFrequency(float drawingFrequency);
     Canvas&      setPosition(Vector2D position);
     Canvas&      setSize(Vector2D size);

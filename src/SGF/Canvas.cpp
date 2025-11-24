@@ -13,6 +13,7 @@ constructionTime(getEpochTime()),
          isAlive(true),
     lastDrawTime(0),
       rectangles(),
+       rectCount(0),
       sfmlWindow(sf::VideoMode(1, 1), "", sf::Style::Titlebar | sf::Style::Close)
 {
     this->inputParser.setRectangleSource(&rectangles);
@@ -24,18 +25,18 @@ constructionTime(getEpochTime()),
     sfmlWindow.setKeyRepeatEnabled(false);
 }
 
-void sgf::Canvas::add(const Rectangle& rect)
+void sgf::Canvas::add(sgf::Rectangle& rect)
 {
-    /* After addition to rectangles tuple, remain it sorted according to priority
+    /* After addition to rectangles vector, remain it sorted according to priority
      * from smallest to highest. Order for later drawing in case of equal priorities
      * is fully preserved. */ 
-    for(int index = 0; index < rectangles.size(); index++)
-        if(rectangles.at(index)->getPriority() > rect.getPriority())
-        {
-            rectangles.insert(rectangles.begin() + index, &rect);
-            return;
-        }
-    rectangles.push_back(&rect);
+    int index = -1;
+    while(++index < rectCount && rectangles.at(index)->getPriority() <= rect.getPriority());
+    rectangles.insert(rectangles.begin() + index, &rect);
+    
+    // Set the rectangle identity-related properties
+    rect.canvas = this;
+    rect.id = rectCount++;
 }
 
 bool sgf::Canvas::alive() const
@@ -83,6 +84,11 @@ sgf::InputParser& sgf::Canvas::getInputParser()
     return this->inputParser;
 }
 
+sgf::Rectangle* sgf::Canvas::getRectangle(int id)
+{
+    return id > -1 && id < rectCount ? this->rectangles.at(id) : nullptr;
+}
+
 float sgf::Canvas::getX() const
 {
 	return this->position.x;
@@ -110,6 +116,7 @@ bool sgf::Canvas::tick()
                 isAlive = false;
                 sfmlWindow.close();
                 return false;
+            
             /* The rest of events are passed to the input parser, which interprets
              * them in context of all rectangles */
             default:
@@ -117,17 +124,19 @@ bool sgf::Canvas::tick()
                 break;
         }
     
+    /* If time since last frame is long enough (in accordance to set drawing frequency)
+     * redraw the SFML window contents. */
     sgf::Milliseconds elapsedTime = getElapsedTime();
     if(elapsedTime - lastDrawTime > frameDuration)
     {
         sfmlWindow.clear();
         
-        // Draw rectangles by exploiting their one-way magic of friendship
-        for(const Rectangle* rect : rectangles)
-            sfmlWindow.draw(rect->sfmlRect);
+        // Draw all rectangles by exploiting their one-way magic of friendship
+        for(sgf::Rectangle* rect : rectangles)
+            if(rect->getVisible())
+                sfmlWindow.draw(rect->sfmlRect);
         
         sfmlWindow.display();
-        
         lastDrawTime = elapsedTime;
         return true;
     }
@@ -135,23 +144,10 @@ bool sgf::Canvas::tick()
     return false;
 }
 
-bool sgf::Canvas::remove(const Rectangle& rect)
-{
-    // Remove if there is such rectangle added.
-    for(int index = 0; index < rectangles.size(); index++)
-        if(rectangles.at(index) == &rect)
-        {
-            rectangles.erase(rectangles.begin() + index);
-            return true;
-        }
-    
-    return false;
-}
-
 sgf::Canvas& sgf::Canvas::setDrawingFrequency(float drawingFrequency)
 {
     this->drawingFrequency = drawingFrequency;
-    this->frameDuration    = (Milliseconds)(1000.F / drawingFrequency);
+    this->frameDuration    = (sgf::Milliseconds)(1000.F / drawingFrequency);
     return *this;
 }
 

@@ -6,20 +6,24 @@
 
 namespace sgf
 {
-    class                                 Canvas;
-    class                                 InputParser;
-    class                                 Rectangle;
-    class 								  Slider;
-    struct                                Vector2D { float x, y; };
-    typedef unsigned char                 Byte;
-    struct                                Color3D  { Byte r, g, b; };
-    typedef sf::Uint32                    Unicode;
-    typedef void                        (*KeyboardListener)(Unicode data, void* payload);
-    typedef unsigned long long            Milliseconds;
-    enum                                  MouseEvent { DOWN, MOVE, UP };
-    typedef void                        (*MouseListener)(MouseEvent event, Vector2D position, void* payload);
-    typedef std::vector<const Rectangle*> RectangleTuple;
-    typedef void                        (*SliderListener)(float value, void* payload);
+    typedef unsigned char Byte;
+    typedef unsigned long long Milliseconds;
+    typedef sf::Uint32 Unicode;
+    
+    class Button;
+    class Canvas;
+    class InputParser;
+    class Rectangle;
+    class Slider;
+    enum class MouseEvent { DOWN, MOVE, UP };
+    struct Vector2D { float x, y; };
+    struct Color3D  { Byte r, g, b; };
+    
+    typedef std::vector<Rectangle*> RectangleVector;
+    typedef void (*ButtonListener)(int id, Canvas* canvas);
+    typedef void (*KeyboardListener)(Unicode data, int id, Canvas* canvas);
+    typedef void (*MouseListener)(MouseEvent event, Vector2D position, int id, Canvas* canvas);
+    typedef void (*SliderListener)(float value, int id, Canvas* canvas);
 }
 
 #endif

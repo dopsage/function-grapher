@@ -23,7 +23,7 @@ void onSliderEvent(float value, int id, sgf::Canvas* canvas)
 
 void onButtonEvent(int id, sgf::Canvas* canvas)
 {
-    std::cout << "Click " << *(int*)canvas->getRectangle(id)->getMeta() << std::endl;
+    std::cout << "Click " << *(int*)canvas->getRectangle(id)->getMeta() << " | " << canvas->getRectangle(id)->getText() << std::endl;
 }
 
 int main()
@@ -48,14 +48,18 @@ int main()
                 .setColor({ 0, 255, 0 })
                 .setPosition({ 0.F, 0.F })
                 .setPriority(1)
-                .setSize({ 20.F, canvas.getHeight() });
+                .setSize({ 20.F, canvas.getHeight() })
+                .setText("Rit");
+                
+    slider.getHandle().setText("Alj");
                 
     sgf::Button button;
                 button
                 .setColor({ 255, 0, 0 })
                 .setPosition({ 100.F, 100.F })
                 .setPriority(2)
-                .setSize({ 50.F, 50.F });
+                .setSize({ 50.F, 50.F })
+                .setText("Ray");
                 
     // USE METADATA FOR CUSTOM VARIABLES BOND TO INSTANCES OF RECTANGLE
     int x = 2137;

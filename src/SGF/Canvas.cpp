@@ -1,6 +1,8 @@
 
 #include "SGF/Canvas.hpp"
 
+const std::string sgf::Canvas::fontFile = "./res/font/pony.ttf";
+
 sgf::Milliseconds sgf::Canvas::getEpochTime() const
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>
@@ -14,7 +16,9 @@ constructionTime(getEpochTime()),
     lastDrawTime(0),
       rectangles(),
        rectCount(0),
-      sfmlWindow(sf::VideoMode(1, 1), "", sf::Style::Titlebar | sf::Style::Close)
+        sfmlFont(),
+      sfmlWindow(sf::VideoMode(1, 1), "", sf::Style::Titlebar | sf::Style::Close),
+           texts()
 {
     this->inputParser.setRectangleSource(&rectangles);
     this->setDrawingFrequency(60.F);
@@ -22,6 +26,7 @@ constructionTime(getEpochTime()),
     this->setSize({128.F, 128.F});
     this->setTitle("Simple GUI Framework Application");
     
+    sfmlFont.loadFromFile(sgf::Canvas::fontFile);
     sfmlWindow.setKeyRepeatEnabled(false);
 }
 
@@ -37,6 +42,18 @@ void sgf::Canvas::add(sgf::Rectangle& rect)
     // Set the rectangle identity-related properties
     rect.canvas = this;
     rect.id = rectCount++;
+    
+    /* If the rectangle is willing to contain a text, make him a one. At the start
+     * copy transformation properties of the rectangle by resetting them for rectangle. */
+    if(rect.containsText)
+    {
+        sf::Text defaultText(rect.text, this->sfmlFont);
+        defaultText.setFillColor(sf::Color(0, 0, 0));
+        
+        texts.emplace_back(defaultText);
+        rect.sfmlTextPtr = &texts.back();
+        rect.setPosition(rect.getPosition());
+    }
 }
 
 bool sgf::Canvas::alive() const
@@ -134,7 +151,12 @@ bool sgf::Canvas::tick()
         // Draw all rectangles by exploiting their one-way magic of friendship
         for(sgf::Rectangle* rect : rectangles)
             if(rect->getVisible())
+            {
                 sfmlWindow.draw(rect->sfmlRect);
+                
+                if(rect->containsText)
+                    sfmlWindow.draw(*rect->sfmlTextPtr);
+            }
         
         sfmlWindow.display();
         lastDrawTime = elapsedTime;

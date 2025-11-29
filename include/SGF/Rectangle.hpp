@@ -20,6 +20,7 @@ class Rectangle
 private:
     Canvas*            canvas;
 	Color3D	           color;
+    bool               containsText;
     int                id;
     KeyboardListener   keyboardListener;
     MouseListener      mouseListener;
@@ -27,7 +28,9 @@ private:
     Vector2D 		   position;
 	int 			   priority;
 	sf::RectangleShape sfmlRect;
+    sf::Text*          sfmlTextPtr;
 	Vector2D 		   size;
+    std::string        text;
     bool               visible;
 
 public:
@@ -35,12 +38,14 @@ public:
 	virtual ~Rectangle() = default;
     bool             contains(Vector2D position) const;
 	virtual Color3D	 getColor() const;
+    bool             getContainsText() const;
+    float            getHeight() const;
     int              getID() const;
     void*            getMeta();
 	virtual Vector2D getPosition() const;
 	int 	 		 getPriority() const;
 	virtual Vector2D getSize() const;
-    float            getHeight() const;
+    virtual const std::string& getText() const;
     float            getWidth() const;
     virtual bool     getVisible() const;
     float            getX() const;
@@ -60,6 +65,7 @@ public:
     virtual Rectangle& setPosition(Vector2D position);
 	virtual Rectangle& setPriority(int priority);
 	virtual Rectangle& setSize(Vector2D size);
+    virtual Rectangle& setText(const std::string& text);
     virtual Rectangle& setVisible(bool visible);
 };
 

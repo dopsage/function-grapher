@@ -5,6 +5,8 @@
 #define _CANVAS_HPP
 
 #include <chrono>
+#include <deque>
+#include <string>
 #include <vector>
 #include "SFML/Graphics.hpp"
 #include "SGF/InputParser.hpp"
@@ -22,6 +24,7 @@ class Canvas final
 private:
     Milliseconds     constructionTime;
     float            drawingFrequency;
+    static const std::string fontFile;
     Milliseconds     frameDuration;
     Milliseconds     getEpochTime() const;
     InputParser      inputParser;
@@ -30,8 +33,10 @@ private:
     Vector2D         position;
     RectangleVector  rectangles;
     int              rectCount;
+    sf::Font         sfmlFont;
     sf::RenderWindow sfmlWindow;
     Vector2D         size;
+    std::deque<sf::Text> texts;
     const char*      title;
 
 public:

@@ -47,12 +47,12 @@ void sgf::Canvas::add(sgf::Rectangle& rect)
      * copy transformation properties of the rectangle by resetting them for rectangle. */
     if(rect.containsText)
     {
-        sf::Text defaultText(rect.text, this->sfmlFont);
-        defaultText.setFillColor(sf::Color(0, 0, 0));
-        
-        texts.emplace_back(defaultText);
+        texts.emplace_back("", this->sfmlFont);
         rect.sfmlTextPtr = &texts.back();
+        rect.updateText();
+        
         rect.setPosition(rect.getPosition());
+        
     }
 }
 

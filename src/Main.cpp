@@ -19,6 +19,13 @@ void onMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Ca
 void onSliderEvent(float value, int id, sgf::Canvas* canvas)
 {
     std::cout << value << std::endl;
+    
+    // Update text properties according to the slider value
+    sgf::Rectangle* handle = canvas->getRectangle(2);
+	handle->getText()->size = (unsigned int)(8 + (int)(value * 16));
+	handle->getText()->color.r = (sgf::Byte)(value * 255);
+	handle->getText()->color.b = (sgf::Byte)(value * 255);
+	handle->updateText();
 }
 
 void onButtonEvent(int id, sgf::Canvas* canvas)
@@ -48,30 +55,29 @@ int main()
                 .setColor({ 0, 255, 0 })
                 .setPosition({ 0.F, 0.F })
                 .setPriority(1)
-                .setSize({ 20.F, canvas.getHeight() })
-                .setText("Rit");
-                
-    slider.getHandle().setText("Alj");
+                .setSize({ 20.F, canvas.getHeight() });
                 
     sgf::Button button;
                 button
                 .setColor({ 255, 0, 0 })
                 .setPosition({ 100.F, 100.F })
                 .setPriority(2)
-                .setSize({ 50.F, 50.F })
-                .setText("Ray");
+                .setSize({ 50.F, 50.F });
                 
+    // Use text properties to show customized text in rectangle
+    sgf::TextProperties handleText = { sgf::Color3D({0, 0, 0}), "Alj", 8 };
+    
     // USE METADATA FOR CUSTOM VARIABLES BOND TO INSTANCES OF RECTANGLE
     int x = 2137;
     button.setMeta(&x);
     
     /********** RUN THE FUNCTION GRAPHER APPLICATION **********/
     
-    // Debugging purposes
     canvas.getInputParser().setKeyboardReceiver(&mainBackground);
     mainBackground.setKeyboardListener(onKeyboardEvent).setMouseListener(onMouseEvent);
     slider.setSliderListener(onSliderEvent);
     button.setButtonListener(onButtonEvent);
+    slider.getHandle().setText(&handleText);
 
     canvas.add(mainBackground);
     canvas.add(slider);

@@ -9,10 +9,10 @@ keyboardListener(nullptr),
             meta(nullptr),
         position({0.F, 0.F}),
         priority(0),
+      properties(nullptr),
         sfmlRect(),
      sfmlTextPtr(nullptr),
             size({0.F, 0.F}),
-            text(""),
          visible(true)
 {
                  
@@ -66,9 +66,9 @@ sgf::Vector2D sgf::Rectangle::getSize() const
 	return this->size;
 }
 
-const std::string& sgf::Rectangle::getText() const
+sgf::TextProperties* sgf::Rectangle::getText()
 {
-    return this->text;
+    return this->properties;
 }
 
 float sgf::Rectangle::getWidth() const
@@ -100,6 +100,20 @@ void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position)
 {
     if(this->visible && this->mouseListener != nullptr)
         mouseListener(event, position, this->id, this->canvas);
+}
+
+void sgf::Rectangle::updateText()
+{
+	if(!this->containsText) return;
+	
+	// Update properties of SFML Text instance according to the current properties
+	this->sfmlTextPtr->setString(properties->content);
+	this->sfmlTextPtr->setFillColor(sf::Color(
+		properties->color.r,
+		properties->color.g,
+		properties->color.b
+	));
+	this->sfmlTextPtr->setCharacterSize(properties->size);
 }
 
 sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
@@ -149,19 +163,18 @@ sgf::Rectangle& sgf::Rectangle::setSize(sgf::Vector2D size)
 	return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setText(const std::string& text)
+sgf::Rectangle& sgf::Rectangle::setText(sgf::TextProperties* properties)
 {
     /* If this is first text-setting call, mark this rectangle as a one containing
      * a text - later canvas detects that DURING THE RECTANGLE ADDITION and assigns
-     * it a dedicated SFML Text instance. */
-    if(this->sfmlTextPtr == nullptr) this->containsText = true;
-    else
+     * it a dedicated SFML Text instance. Additionally whole text is refreshed by
+     * the canvas with single `updateText` method call. */
+    if(!this->containsText)
     {
-        // Update the text style ... it should be more sophisticated in the future
-        sfmlTextPtr->setString(text);
-    }
+		this->containsText = true;
+		this->properties = properties;
+	}
     
-    this->text = text;
     return *this;
 }
 

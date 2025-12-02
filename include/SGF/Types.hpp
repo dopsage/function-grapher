@@ -4,6 +4,8 @@
 #ifndef _TYPES_HPP
 #define _TYPES_HPP
 
+#include <string>
+
 namespace sgf
 {
     typedef unsigned char Byte;
@@ -18,6 +20,7 @@ namespace sgf
     enum class MouseEvent { DOWN, MOVE, UP };
     struct Vector2D { float x, y; };
     struct Color3D  { Byte r, g, b; };
+    struct TextProperties { Color3D color; std::string content; unsigned int size; };
     
     typedef std::vector<Rectangle*> RectangleVector;
     typedef void (*ButtonListener)(int id, Canvas* canvas);

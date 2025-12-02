@@ -27,10 +27,10 @@ private:
     void*              meta;
     Vector2D 		   position;
 	int 			   priority;
+	TextProperties*    properties;
 	sf::RectangleShape sfmlRect;
     sf::Text*          sfmlTextPtr;
 	Vector2D 		   size;
-    std::string        text;
     bool               visible;
 
 public:
@@ -45,7 +45,7 @@ public:
 	virtual Vector2D getPosition() const;
 	int 	 		 getPriority() const;
 	virtual Vector2D getSize() const;
-    virtual const std::string& getText() const;
+    virtual TextProperties* getText();
     float            getWidth() const;
     virtual bool     getVisible() const;
     float            getX() const;
@@ -55,6 +55,7 @@ public:
     void               onKeyboardInput(Unicode data);
     void               onMouseInput(MouseEvent event, Vector2D position);
 	
+	void 			   updateText();
     virtual Rectangle& setColor(Color3D color);
     
     // Rectangle can store only one callback method per device.
@@ -65,7 +66,7 @@ public:
     virtual Rectangle& setPosition(Vector2D position);
 	virtual Rectangle& setPriority(int priority);
 	virtual Rectangle& setSize(Vector2D size);
-    virtual Rectangle& setText(const std::string& text);
+    virtual Rectangle& setText(TextProperties* properties);
     virtual Rectangle& setVisible(bool visible);
 };
 

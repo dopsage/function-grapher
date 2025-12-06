@@ -17,6 +17,7 @@ namespace sgf
     class InputParser;
     class Rectangle;
     class Slider;
+    class TextInput;
     enum class MouseEvent { DOWN, MOVE, UP };
     struct Vector2D { float x, y; };
     struct Color3D  { Byte r, g, b; };

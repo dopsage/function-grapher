@@ -10,6 +10,7 @@ keyboardListener(nullptr),
         position({0.F, 0.F}),
         priority(0),
       properties(nullptr),
+   requestedText(false),
         sfmlRect(),
      sfmlTextPtr(nullptr),
             size({0.F, 0.F}),
@@ -168,12 +169,9 @@ sgf::Rectangle& sgf::Rectangle::setText(sgf::TextProperties* properties)
     /* If this is first text-setting call, mark this rectangle as a one containing
      * a text - later canvas detects that DURING THE RECTANGLE ADDITION and assigns
      * it a dedicated SFML Text instance. Additionally whole text is refreshed by
-     * the canvas with single `updateText` method call. */
-    if(!this->containsText)
-    {
-		this->containsText = true;
-		this->properties = properties;
-	}
+     * the canvas with SINGLE `updateText` method call. */
+    this->requestedText = true;
+    this->properties = properties;
     
     return *this;
 }

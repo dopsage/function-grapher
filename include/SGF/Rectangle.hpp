@@ -28,6 +28,7 @@ private:
     Vector2D 		   position;
 	int 			   priority;
 	TextProperties*    properties;
+    bool               requestedText;
 	sf::RectangleShape sfmlRect;
     sf::Text*          sfmlTextPtr;
 	Vector2D 		   size;
@@ -66,7 +67,13 @@ public:
     virtual Rectangle& setPosition(Vector2D position);
 	virtual Rectangle& setPriority(int priority);
 	virtual Rectangle& setSize(Vector2D size);
+    
+    /* This method provides a source of text data for this rectangle, which in return
+     * later (on calling canvas `add` with this rectangle as parameter) receives
+     * a dedicated SFML Text instance which can be customized through provided
+     * TextProperties instance. */
     virtual Rectangle& setText(TextProperties* properties);
+    
     virtual Rectangle& setVisible(bool visible);
 };
 

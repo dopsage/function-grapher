@@ -44,13 +44,14 @@ void sgf::Canvas::add(sgf::Rectangle& rect)
     rect.id = rectCount++;
     
     /* If the rectangle is willing to contain a text, make him a one. At the start
-     * copy transformation properties of the rectangle by resetting them for rectangle. */
-    if(rect.containsText)
+     * copy transformation properties of the rectangle by resetting them for it. */
+    if(rect.requestedText)
     {
         texts.emplace_back("", this->sfmlFont);
         rect.sfmlTextPtr = &texts.back();
-        rect.updateText();
         
+        rect.containsText = true;
+        rect.updateText();
         rect.setPosition(rect.getPosition());
         
     }

@@ -22,22 +22,22 @@ namespace sgf
 class Canvas final
 {
 private:
-    Milliseconds     constructionTime;
-    float            drawingFrequency;
+    Milliseconds             constructionTime;
+    float                    drawingFrequency;
     static const std::string fontFile;
-    Milliseconds     frameDuration;
-    Milliseconds     getEpochTime() const;
-    InputParser      inputParser;
-    bool             isAlive;
-    Milliseconds     lastDrawTime;
-    Vector2D         position;
-    RectangleVector  rectangles;
-    int              rectCount;
-    sf::Font         sfmlFont;
-    sf::RenderWindow sfmlWindow;
-    Vector2D         size;
-    std::deque<sf::Text> texts;
-    const char*      title;
+    Milliseconds             frameDuration;
+    Milliseconds             getEpochTime() const;
+    InputParser              inputParser;
+    bool                     isAlive;
+    Milliseconds             lastDrawTime;
+    Vector2D                 position;
+    RectangleVector          rectangles;
+    int                      rectCount;
+    sf::Font                 sfmlFont;
+    sf::RenderWindow         sfmlWindow;
+    Vector2D                 size;
+    std::deque<sf::Text>     texts;
+    const char*              title;
 
 public:
     Canvas();

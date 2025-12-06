@@ -125,6 +125,8 @@ sgf::Slider& sgf::Slider::setSliderListener(sgf::SliderListener callback)
     return *this;
 }
 
+// TODO: Consider if getHandle could be allowed to change instead of reduntant methods like this
+
 sgf::Slider& sgf::Slider::setHandleHeight(float height)
 {
     // I cannot really have an idea on why one would need a getter for handle height

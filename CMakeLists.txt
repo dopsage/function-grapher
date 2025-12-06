@@ -10,7 +10,7 @@ find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 
 # Add executable
 set(PROJECT_EXEC function_grapher)
-add_executable(${PROJECT_EXEC} src/Main.cpp src/SGF/Button.cpp src/SGF/Canvas.cpp src/SGF/InputParser.cpp src/SGF/Rectangle.cpp src/SGF/Slider.cpp)
+add_executable(${PROJECT_EXEC} src/Main.cpp src/SGF/Button.cpp src/SGF/Canvas.cpp src/SGF/InputParser.cpp src/SGF/Rectangle.cpp src/SGF/Slider.cpp src/SGF/TextInput.cpp)
 
 # Copy resources next to the executable so it can use them
 add_custom_command(TARGET ${PROJECT_EXEC} POST_BUILD

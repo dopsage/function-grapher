@@ -22,7 +22,8 @@ void sgf::InputParser::parseSfmlEvent(const sf::Event& event)
     switch(event.type)
     {
         case sf::Event::TextEntered:
-            keyboardReceiver->onKeyboardInput(event.text.unicode);
+            if(keyboardReceiver != nullptr)
+                keyboardReceiver->onKeyboardInput(event.text.unicode);
             break;
         
         /* These allows an event receiver to capture the mouse; so while left mouse

@@ -7,16 +7,6 @@
 #include "SGF/TextInput.hpp"
 #include "SGF/Types.hpp"
 
-void onKeyboardEvent(sgf::Unicode data, int id, sgf::Canvas* canvas)
-{
-	std::cout << data << std::endl;
-}
-
-void onMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Canvas* canvas)
-{
-    std::cout << (int)event << std::endl;
-}
-
 void onSliderEvent(float value, int id, sgf::Canvas* canvas)
 {
     std::cout << value << std::endl;
@@ -90,9 +80,6 @@ int main()
     button.setMeta(&x);
     
     /********** RUN THE FUNCTION GRAPHER APPLICATION **********/
-    
-    canvas.getInputParser().setKeyboardReceiver(&mainBackground);
-    mainBackground.setKeyboardListener(onKeyboardEvent).setMouseListener(onMouseEvent);
 
     canvas.add(mainBackground);
     canvas.add(slider);

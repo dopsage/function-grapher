@@ -4,6 +4,7 @@
 #ifndef _TEXTINPUT_HPP
 #define _TEXTINPUT_HPP
 
+#include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
 #include "SGF/Types.hpp"
 
@@ -17,9 +18,14 @@ namespace sgf
 class TextInput : public Rectangle
 {
 private:
-    Rectangle field;
-    int       leftPad;
-    int       vertPad;
+    Rectangle        field;
+    bool             isFieldMouseDown;
+    int              leftPad;
+    static void      onFieldKeyboardEvent(Unicode data, int id, Canvas* canvas);
+    static void      onFieldMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
+    static const int uniBackspace;
+    static const int uniReturn;
+    int              vertPad;
 
 public:
 	TextInput();

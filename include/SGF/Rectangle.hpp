@@ -53,7 +53,7 @@ public:
     float            getY() const;
     
     // These two methods invoke keyboard and mouse listeners with given parameters 
-    void               onKeyboardInput(Unicode data);
+    void               onKeyboardInput(int data);
     void               onMouseInput(MouseEvent event, Vector2D position);
 	
 	void 			   updateText();

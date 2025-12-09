@@ -91,7 +91,7 @@ float sgf::Rectangle::getY() const
     return this->getPosition().y;
 }
 
-void sgf::Rectangle::onKeyboardInput(sgf::Unicode data)
+void sgf::Rectangle::onKeyboardInput(int data)
 {
     if(this->visible && this->keyboardListener != nullptr)
         keyboardListener(data, this->id, this->canvas);

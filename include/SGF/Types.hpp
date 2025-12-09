@@ -10,7 +10,6 @@ namespace sgf
 {
     typedef unsigned char Byte;
     typedef unsigned long long Milliseconds;
-    typedef sf::Uint32 Unicode;
     
     class Button;
     class Canvas;
@@ -25,7 +24,7 @@ namespace sgf
     
     typedef std::vector<Rectangle*> RectangleVector;
     typedef void (*ButtonListener)(int id, Canvas* canvas);
-    typedef void (*KeyboardListener)(Unicode data, int id, Canvas* canvas);
+    typedef void (*KeyboardListener)(int data, int id, Canvas* canvas);
     typedef void (*MouseListener)(MouseEvent event, Vector2D position, int id, Canvas* canvas);
     typedef void (*SliderListener)(float value, int id, Canvas* canvas);
 }

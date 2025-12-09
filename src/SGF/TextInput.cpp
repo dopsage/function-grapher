@@ -1,29 +1,71 @@
 
 #include "SGF/TextInput.hpp"
 
-const int sgf::TextInput::uniBackspace = 8;
+const int sgf::TextInput::keyBackspace = -59;
+const int sgf::TextInput::keyLeftArrow = -71;
+const int sgf::TextInput::keyReturn = -58;
+const int sgf::TextInput::keyRightArrow = -72;
 
-const int sgf::TextInput::uniReturn = 13;
-
-#include <iostream>
-void sgf::TextInput::onFieldKeyboardEvent(sgf::Unicode data, int id, sgf::Canvas* canvas)
+void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 {
-    if(data == sgf::TextInput::uniReturn)
-    {
-        // Field received carriage return, finish its listening of keyboard (deselect)
-        std::cout << "<Return>" << std::endl;
-        canvas->getInputParser().setKeyboardReceiver(nullptr);
-    }
-    else if(data == sgf::TextInput::uniBackspace)
-    {
-        // Field received backspace, remove last character from the current input text
-        std::cout << "<Backspace>" << std::endl;
-    }
-    else
-    {
-        // Field received some ordinary textual character, update the input text
-        std::cout << data << std::endl;
-    }
+	// Assume metadata of the field instance is set to the parenting text input instance
+	sgf::Rectangle* field = canvas->getRectangle(id);
+	sgf::TextInput* input = (sgf::TextInput*)field->getMeta();
+	
+	switch(data)
+	{
+		case sgf::TextInput::keyBackspace:
+		{
+			// Field received backspace, remove last character from the current input text
+			if(input->cursorPosition < input->getContent()->length())
+			{
+// TODO: Make it work like actual backspace instead of delete
+				std::string updated = std::string(*input->getContent());
+				updated.erase(input->cursorPosition, 1);
+				input->setContent(updated);
+			}
+			break;
+		}
+		case sgf::TextInput::keyLeftArrow:
+		{
+			// Field received left arrow, move cursor by one to left			
+			input->cursorPosition = (input->cursorPosition > 0) ? (input->cursorPosition - 1) : (0);
+			break;
+		}
+		case sgf::TextInput::keyReturn:
+		{
+			// Field received carriage return, finish its listening of keyboard (deselect)
+			canvas->getInputParser().setKeyboardReceiver(nullptr);
+			break;
+		}
+		case sgf::TextInput::keyRightArrow:
+		{
+			// Field received right arrow, move cursor by one to right
+			input->cursorPosition = (input->cursorPosition < input->getContent()->length() - 1) ? 
+									(input->cursorPosition + 1) :
+									(input->getContent()->length() - 1);			
+			break;
+		}
+		default:
+		{
+			if(
+// TODO: Implement some serious filter
+				(data >= 65 && data <= 90) ||	// Big letters
+				(data >= 97 && data <= 122) ||	// Small letters
+				data == 32 ||					// Space ` `
+				data == 46 ||					// Period `.`
+				data == 44						// Comma `,`
+			)
+			{
+				// Field received some other unicode, insert it into content string	
+				std::string updated = std::string(*input->getContent());
+				updated.insert(input->cursorPosition, 1, (char)data);
+				input->setContent(updated);
+				input->cursorPosition++;
+			}
+			break;
+		}
+	}	
 }
 
 void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Canvas* canvas)
@@ -47,6 +89,7 @@ void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D posi
 }
 
 sgf::TextInput::TextInput() :
+			 cursorPosition(0),
                       field(),
            isFieldMouseDown(false),
                     leftPad(0.F),
@@ -56,6 +99,11 @@ sgf::TextInput::TextInput() :
     this->field.setMouseListener(sgf::TextInput::onFieldMouseEvent);
     
     this->field.setMeta(this);
+}
+
+const std::string* sgf::TextInput::getContent()
+{
+	return &field.getText()->content;
 }
 
 sgf::Rectangle& sgf::TextInput::getField()
@@ -85,6 +133,15 @@ sgf::Rectangle& sgf::TextInput::setColor(sgf::Color3D color)
     // Field color is an inverse of the background's
 	this->field.setColor({ (sgf::Byte)(255 - color.r), (sgf::Byte)(255 - color.g), (sgf::Byte)(255 - color.b) });
     
+	return *this;
+}
+
+sgf::TextInput& sgf::TextInput::setContent(const std::string& content)
+{
+	// Set just the content field of the set text properties
+	field.getText()->content = content;
+	field.updateText();
+	
 	return *this;
 }
 

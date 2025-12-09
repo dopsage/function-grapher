@@ -18,22 +18,27 @@ namespace sgf
 class TextInput : public Rectangle
 {
 private:
+	int 			 cursorPosition;
     Rectangle        field;
     bool             isFieldMouseDown;
     int              leftPad;
-    static void      onFieldKeyboardEvent(Unicode data, int id, Canvas* canvas);
+    static void      onFieldKeyboardEvent(int data, int id, Canvas* canvas);
     static void      onFieldMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
-    static const int uniBackspace;
-    static const int uniReturn;
+    static const int keyBackspace;
+    static const int keyLeftArrow;
+    static const int keyReturn;
+    static const int keyRightArrow;
     int              vertPad;
 
 public:
 	TextInput();
+	const std::string* getContent();
     Rectangle&      getField();
     int             getLeftPadding() const;
     TextProperties* getText() override;
     int             getVerticalPadding() const;
     Rectangle&      setColor(Color3D color) override;
+	sgf::TextInput&	setContent(const std::string& content);
     TextInput&      setLeftPadding(int padding);
     Rectangle&      setPosition(Vector2D position) override;
 	Rectangle&      setPriority(int priority) override;

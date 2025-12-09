@@ -26,7 +26,13 @@ void onSliderEvent(float value, int id, sgf::Canvas* canvas)
 
 void onButtonEvent(int id, sgf::Canvas* canvas)
 {
-    std::cout << "Click " << *(int*)canvas->getRectangle(id)->getMeta() << " | " << canvas->getRectangle(id)->getText() << std::endl;
+    sgf::TextInput* input = (sgf::TextInput*)canvas->getRectangle(4);
+    const std::string& content = *input->getContent();
+    
+    std::cout << 
+    ((content == "Celisracist") ?
+    "It would never happen, stop lying" :
+    "Ye, ye, of course") << std::endl;
 }
 
 int main()
@@ -64,7 +70,7 @@ int main()
                 .setSize({ 50.F, 50.F });
     button.setButtonListener(onButtonEvent);
     
-    sgf::TextProperties inputText = { sgf::Color3D({ 0, 0, 0 }), "Default text", 16 };
+    sgf::TextProperties inputText = { sgf::Color3D({ 0, 0, 0 }), "", 16 };
     sgf::TextInput input;
                    input
                    .setLeftPadding(20.F)
@@ -74,10 +80,6 @@ int main()
                    .setPriority(3)
                    .setSize({ 250.F, 80.F });
     input.getField().setText(&inputText);
-    
-    // USE METADATA FOR CUSTOM VARIABLES BOND TO INSTANCES OF RECTANGLE
-    int x = 2137;
-    button.setMeta(&x);
     
     /********** RUN THE FUNCTION GRAPHER APPLICATION **********/
 

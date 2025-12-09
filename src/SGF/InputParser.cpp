@@ -21,11 +21,16 @@ void sgf::InputParser::parseSfmlEvent(const sf::Event& event)
 {
     switch(event.type)
     {
+		/* KeyPressed event provides all keys that are missing in TextEntered event.
+		 * In order to distinct one from another, first mentioned always passes negative
+		 * corresponding to some key code, while the second passes just the unicode
+		 * character code. Thus negatives shall be used for control, and positives for keys. */
+		case sf::Event::KeyPressed:
         case sf::Event::TextEntered:
-            if(keyboardReceiver != nullptr)
-                keyboardReceiver->onKeyboardInput(event.text.unicode);
-            break;
-        
+			if(keyboardReceiver != nullptr)
+				keyboardReceiver->onKeyboardInput(event.type == sf::Event::KeyPressed ? (-1 * (int)event.key.code) : (event.text.unicode));
+			break;
+			
         /* These allows an event receiver to capture the mouse; so while left mouse
          * button is held, events still arrive to the receiver despite the mouse
          * not hovering it. */

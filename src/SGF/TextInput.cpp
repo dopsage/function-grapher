@@ -11,25 +11,25 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 	// Assume metadata of the field instance is set to the parenting text input instance
 	sgf::Rectangle* field = canvas->getRectangle(id);
 	sgf::TextInput* input = (sgf::TextInput*)field->getMeta();
-	
+    
 	switch(data)
 	{
 		case sgf::TextInput::keyBackspace:
 		{
 			// Field received backspace, remove last character from the current input text
-			if(input->cursorPosition < input->getContent()->length())
+			if(input->cursorPosition > -1)
 			{
-// TODO: Make it work like actual backspace instead of delete
 				std::string updated = std::string(*input->getContent());
 				updated.erase(input->cursorPosition, 1);
 				input->setContent(updated);
+                input->cursorPosition--;
 			}
 			break;
 		}
 		case sgf::TextInput::keyLeftArrow:
 		{
-			// Field received left arrow, move cursor by one to left			
-			input->cursorPosition = (input->cursorPosition > 0) ? (input->cursorPosition - 1) : (0);
+			// Field received left arrow, move cursor by one to left (limit to -1)		
+			input->cursorPosition = (input->cursorPosition > -1) ? (input->cursorPosition - 1) : (-1);
 			break;
 		}
 		case sgf::TextInput::keyReturn:
@@ -40,10 +40,10 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 		}
 		case sgf::TextInput::keyRightArrow:
 		{
-			// Field received right arrow, move cursor by one to right
+			// Field received right arrow, move cursor by one to right (limit to length-1)
 			input->cursorPosition = (input->cursorPosition < input->getContent()->length() - 1) ? 
 									(input->cursorPosition + 1) :
-									(input->getContent()->length() - 1);			
+									(input->getContent()->length() - 1);
 			break;
 		}
 		default:
@@ -59,13 +59,13 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 			{
 				// Field received some other unicode, insert it into content string	
 				std::string updated = std::string(*input->getContent());
-				updated.insert(input->cursorPosition, 1, (char)data);
+				updated.insert(input->cursorPosition + 1, 1, (char)data);
 				input->setContent(updated);
 				input->cursorPosition++;
 			}
 			break;
 		}
-	}	
+	}
 }
 
 void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Canvas* canvas)
@@ -81,7 +81,9 @@ void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D posi
     }
     else if(input->isFieldMouseDown && event == sgf::MouseEvent::UP && field->contains(position))
     {
-        // Field got clicked on, set it as keyboard listener (select)
+        /* Field got clicked on, set it as keyboard listener (select).
+         * Do not forget about resetting cursor position to the end of the input. */
+        input->cursorPosition = input->getContent()->length() - 1; 
         canvas->getInputParser().setKeyboardReceiver(field);
         
         input->isFieldMouseDown = false;
@@ -130,7 +132,7 @@ sgf::Rectangle& sgf::TextInput::setColor(sgf::Color3D color)
 {
     sgf::Rectangle::setColor(color);
     
-    // Field color is an inverse of the background's
+    // Field color is an inverse of the background's 
 	this->field.setColor({ (sgf::Byte)(255 - color.r), (sgf::Byte)(255 - color.g), (sgf::Byte)(255 - color.b) });
     
 	return *this;

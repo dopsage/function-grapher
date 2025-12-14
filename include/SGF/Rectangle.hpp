@@ -27,7 +27,7 @@ private:
     void*              meta;
     Vector2D 		   position;
 	int 			   priority;
-	TextProperties*    properties;
+	TextProperties*    textProps;
     bool               requestedText;
 	sf::RectangleShape sfmlRect;
     sf::Text*          sfmlTextPtr;
@@ -37,20 +37,20 @@ private:
 public:
 	Rectangle();
 	virtual ~Rectangle() = default;
-    bool             contains(Vector2D position) const;
-	virtual Color3D	 getColor() const;
-    bool             getContainsText() const;
-    float            getHeight() const;
-    int              getID() const;
-    void*            getMeta();
-	virtual Vector2D getPosition() const;
-	int 	 		 getPriority() const;
-	virtual Vector2D getSize() const;
+    bool                    contains(Vector2D position) const;
+	virtual Color3D	        getColor() const;
+    bool                    getContainsText() const;
+    float                   getHeight() const;
+    int                     getID() const;
+    void*                   getMeta();
+	virtual Vector2D        getPosition() const;
+	int 	 		        getPriority() const;
+	virtual Vector2D        getSize() const;
     virtual TextProperties* getText();
-    float            getWidth() const;
-    virtual bool     getVisible() const;
-    float            getX() const;
-    float            getY() const;
+    float                   getWidth() const;
+    virtual bool            getVisible() const;
+    float                   getX() const;
+    float                   getY() const;
     
     // These two methods invoke keyboard and mouse listeners with given parameters 
     void               onKeyboardInput(int data);

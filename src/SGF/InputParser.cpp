@@ -7,6 +7,7 @@ sgf::Rectangle* sgf::InputParser::getHoveredRectangle(const sgf::Vector2D& posit
     for(sgf::Rectangle* rect : *rectangles)
         if(receiver == nullptr || (rect->getVisible() && rect->contains(position) && rect->getPriority() >= receiver->getPriority()))
             receiver = rect;
+
     return receiver;
 }
 

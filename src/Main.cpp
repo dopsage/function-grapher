@@ -9,8 +9,6 @@
 
 void onSliderEvent(float value, int id, sgf::Canvas* canvas)
 {
-    std::cout << value << std::endl;
-    
     // Update text properties according to the slider value
     sgf::Rectangle* handle = canvas->getRectangle(2);
 	handle->getText()->size = (unsigned int)(8 + (int)(value * 16));
@@ -33,6 +31,8 @@ void onButtonEvent(int id, sgf::Canvas* canvas)
     ((content == "Celisracist") ?
     "It would never happen, stop lying" :
     "Ye, ye, of course") << std::endl;
+    
+    std::cout << input->getField().getText()->content << ": " << input->getField().getText()->width << std::endl;
 }
 
 int main()
@@ -89,6 +89,10 @@ int main()
     canvas.add(button);
     canvas.add(input);
     canvas.add(input.getField());
+    canvas.add(input.getCursor());
+    
+    // DEBUG
+    input.getCursor().setColor({ 0, 0, 0 });
     
     while(canvas.alive())
     {

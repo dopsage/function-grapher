@@ -17,10 +17,37 @@ namespace sgf
     class Rectangle;
     class Slider;
     class TextInput;
-    enum class MouseEvent { DOWN, MOVE, UP };
-    struct Vector2D { float x, y; };
-    struct Color3D  { Byte r, g, b; };
-    struct TextProperties { Color3D color; std::string content; unsigned int size; };
+    
+    enum class MouseEvent
+    {
+        DOWN,
+        MOVE,
+        UP
+    };
+    
+    struct Vector2D
+    {
+        float x;
+        float y;
+    };
+    
+    struct Color3D 
+    {
+        Byte r;
+        Byte g;
+        Byte b;
+    };
+    
+    struct TextProperties
+    {
+        // Variable
+        Color3D color;
+        std::string content;
+        unsigned int size;
+        
+        // Read-only
+        int width;
+    };
     
     typedef std::vector<Rectangle*> RectangleVector;
     typedef void (*ButtonListener)(int id, Canvas* canvas);

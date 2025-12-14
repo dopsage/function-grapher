@@ -9,7 +9,7 @@ keyboardListener(nullptr),
             meta(nullptr),
         position({0.F, 0.F}),
         priority(0),
-      properties(nullptr),
+       textProps(nullptr),
    requestedText(false),
         sfmlRect(),
      sfmlTextPtr(nullptr),
@@ -69,7 +69,7 @@ sgf::Vector2D sgf::Rectangle::getSize() const
 
 sgf::TextProperties* sgf::Rectangle::getText()
 {
-    return this->properties;
+    return this->textProps;
 }
 
 float sgf::Rectangle::getWidth() const
@@ -108,13 +108,18 @@ void sgf::Rectangle::updateText()
 	if(!this->containsText) return;
 	
 	// Update properties of SFML Text instance according to the current properties
-	this->sfmlTextPtr->setString(properties->content);
+	this->sfmlTextPtr->setString(textProps->content);
 	this->sfmlTextPtr->setFillColor(sf::Color(
-		properties->color.r,
-		properties->color.g,
-		properties->color.b
+		textProps->color.r,
+		textProps->color.g,
+		textProps->color.b
 	));
-	this->sfmlTextPtr->setCharacterSize(properties->size);
+	this->sfmlTextPtr->setCharacterSize(textProps->size);
+    
+    // Also update fields that are read-only extrnally
+    this->textProps->width =
+    sfmlTextPtr->findCharacterPos(sfmlTextPtr->getString().getSize()).x -
+    sfmlTextPtr->findCharacterPos(0).x;
 }
 
 sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
@@ -171,7 +176,7 @@ sgf::Rectangle& sgf::Rectangle::setText(sgf::TextProperties* properties)
      * it a dedicated SFML Text instance. Additionally whole text is refreshed by
      * the canvas with SINGLE `updateText` method call. */
     this->requestedText = true;
-    this->properties = properties;
+    this->textProps = properties;
     
     return *this;
 }
@@ -181,4 +186,3 @@ sgf::Rectangle& sgf::Rectangle::setVisible(bool visible)
     this->visible = visible;
     return *this;
 }
-

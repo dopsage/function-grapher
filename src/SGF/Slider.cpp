@@ -52,7 +52,7 @@ sgf::Rectangle::Rectangle(),
     
     /* Adjust the handle to defaults, and make the slider instance its metadata
      * for sake of handle callback set above. */
-    this->handle.setSize({ handle.getWidth(), 50.F });
+    this->setHandleHeight(50.F);
     this->handle.setMeta(this);
 }
 

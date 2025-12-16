@@ -18,7 +18,6 @@ class Rectangle
     friend class Canvas;
 
 private:
-    Canvas*            canvas;
 	Color3D	           color;
     bool               containsText;
     int                id;
@@ -33,6 +32,9 @@ private:
     sf::Text*          sfmlTextPtr;
 	Vector2D 		   size;
     bool               visible;
+
+protected:
+    Canvas* canvas;
 
 public:
 	Rectangle();
@@ -55,7 +57,8 @@ public:
     // These two methods invoke keyboard and mouse listeners with given parameters 
     void               onKeyboardInput(int data);
     void               onMouseInput(MouseEvent event, Vector2D position);
-	
+    
+    virtual void       onTick(int tickIndex);
 	void 			   updateText();
     virtual Rectangle& setColor(Color3D color);
     

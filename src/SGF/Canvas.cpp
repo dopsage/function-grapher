@@ -18,16 +18,17 @@ constructionTime(getEpochTime()),
        rectCount(0),
         sfmlFont(),
       sfmlWindow(sf::VideoMode(1, 1), "", sf::Style::Titlebar | sf::Style::Close),
-           texts()
+           texts(),
+       tickIndex(0)
 {
     this->inputParser.setRectangleSource(&rectangles);
-    this->setDrawingFrequency(60.F);
+    this->setTickDuration(1000 / 60);
     this->setPosition({0.F, 0.F});
     this->setSize({128.F, 128.F});
     this->setTitle("Simple GUI Framework Application");
     
     sfmlFont.loadFromFile(sgf::Canvas::fontFile);
-    sfmlWindow.setKeyRepeatEnabled(false);
+    //sfmlWindow.setKeyRepeatEnabled(false);
 }
 
 void sgf::Canvas::add(sgf::Rectangle& rect)
@@ -62,9 +63,9 @@ bool sgf::Canvas::alive() const
     return this->isAlive;
 }
 
-float sgf::Canvas::getDrawingFrequency() const
+sgf::Milliseconds sgf::Canvas::getElapsedTime() const
 {
-    return this->drawingFrequency;
+    return getEpochTime() - this->constructionTime;
 }
 
 float sgf::Canvas::getHeight() const
@@ -72,9 +73,9 @@ float sgf::Canvas::getHeight() const
 	return this->size.y;
 }
 
-float sgf::Canvas::getWidth() const
+sgf::InputParser& sgf::Canvas::getInputParser()
 {
-	return this->size.x;
+    return this->inputParser;
 }
 
 sgf::Vector2D sgf::Canvas::getPosition() const
@@ -82,9 +83,24 @@ sgf::Vector2D sgf::Canvas::getPosition() const
     return this->position;
 }
 
+sgf::Rectangle* sgf::Canvas::getRectangle(int id)
+{
+    return id > -1 && id < rectCount ? this->rectangles.at(id) : nullptr;
+}
+
 sgf::Vector2D sgf::Canvas::getSize() const
 {
     return this->size;
+}
+
+sgf::Milliseconds sgf::Canvas::getTickDuration() const
+{
+    return tickDuration;
+}
+
+int sgf::Canvas::getTickIndex() const
+{
+    return tickIndex;
 }
 
 const char* sgf::Canvas::getTitle() const
@@ -92,19 +108,9 @@ const char* sgf::Canvas::getTitle() const
     return this->title;
 }
 
-sgf::Milliseconds sgf::Canvas::getElapsedTime() const
+float sgf::Canvas::getWidth() const
 {
-    return getEpochTime() - this->constructionTime;
-}
-
-sgf::InputParser& sgf::Canvas::getInputParser()
-{
-    return this->inputParser;
-}
-
-sgf::Rectangle* sgf::Canvas::getRectangle(int id)
-{
-    return id > -1 && id < rectCount ? this->rectangles.at(id) : nullptr;
+	return this->size.x;
 }
 
 float sgf::Canvas::getX() const
@@ -145,12 +151,15 @@ bool sgf::Canvas::tick()
     /* If time since last frame is long enough (in accordance to set drawing frequency)
      * redraw the SFML window contents. */
     sgf::Milliseconds elapsedTime = getElapsedTime();
-    if(elapsedTime - lastDrawTime > frameDuration)
+    if(elapsedTime - lastDrawTime > tickDuration)
     {
         sfmlWindow.clear();
         
-        // Draw all rectangles by exploiting their one-way magic of friendship
+        /* Draw all rectangles by exploiting their one-way magic of friendship.
+         * Call update method for each rectangle, no matter the visibility status. */
         for(sgf::Rectangle* rect : rectangles)
+        {
+            rect->onTick(tickIndex);
             if(rect->getVisible())
             {
                 sfmlWindow.draw(rect->sfmlRect);
@@ -158,20 +167,15 @@ bool sgf::Canvas::tick()
                 if(rect->containsText)
                     sfmlWindow.draw(*rect->sfmlTextPtr);
             }
+        }
         
         sfmlWindow.display();
         lastDrawTime = elapsedTime;
+        tickIndex++;
         return true;
     }
     
     return false;
-}
-
-sgf::Canvas& sgf::Canvas::setDrawingFrequency(float drawingFrequency)
-{
-    this->drawingFrequency = drawingFrequency;
-    this->frameDuration    = (sgf::Milliseconds)(1000.F / drawingFrequency);
-    return *this;
 }
 
 sgf::Canvas& sgf::Canvas::setPosition(sgf::Vector2D position)
@@ -186,6 +190,12 @@ sgf::Canvas& sgf::Canvas::setSize(Vector2D size)
     this->size = size;
     this->sfmlWindow.setSize(sf::Vector2u(size.x, size.y));
     this->sfmlWindow.setView(sf::View(sf::FloatRect(0.F, 0.F, size.x, size.y)));
+    return *this;
+}
+
+sgf::Canvas& sgf::Canvas::setTickDuration(Milliseconds duration)
+{
+    this->tickDuration = duration;
     return *this;
 }
 

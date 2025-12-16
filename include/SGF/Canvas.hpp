@@ -18,14 +18,14 @@ namespace sgf
 
 /* Core of SGF, it facilitates rendering of a window and its contents in form of
  * simple rectangular areas (Rectangle instances) by wrapping SFML features in a
- * way that makes the framework intuitive and primitive (but simple).  */
+ * way that makes the framework intuitive and primitive (but simple). */
 class Canvas final
 {
 private:
     Milliseconds             constructionTime;
     float                    drawingFrequency;
     static const std::string fontFile;
-    Milliseconds             frameDuration;
+    Milliseconds             tickDuration;
     Milliseconds             getEpochTime() const;
     InputParser              inputParser;
     bool                     isAlive;
@@ -37,28 +37,30 @@ private:
     sf::RenderWindow         sfmlWindow;
     Vector2D                 size;
     std::deque<sf::Text>     texts;
+    int                      tickIndex;
     const char*              title;
 
 public:
     Canvas();
     void         add(Rectangle& rect);
     bool         alive() const;
-    float        getDrawingFrequency() const;
-    float 		 getHeight() const;
-    float 		 getWidth() const;
-    Vector2D     getPosition() const;
-    Vector2D     getSize() const;
-    const char*  getTitle() const;
     Milliseconds getElapsedTime() const;
+    float 		 getHeight() const;
     InputParser& getInputParser();
+    Vector2D     getPosition() const;
     Rectangle*   getRectangle(int id);
+    Vector2D     getSize() const;
+    Milliseconds getTickDuration() const;
+    int          getTickIndex() const;
+    const char*  getTitle() const;
+    float 		 getWidth() const;
     float 		 getX() const;
     float 		 getY() const;
     void         kill();
     bool         tick();
-    Canvas&      setDrawingFrequency(float drawingFrequency);
     Canvas&      setPosition(Vector2D position);
     Canvas&      setSize(Vector2D size);
+    Canvas&      setTickDuration(Milliseconds duration);
     Canvas&      setTitle(const char* title);
 };
 

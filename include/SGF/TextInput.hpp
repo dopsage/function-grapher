@@ -19,6 +19,7 @@ namespace sgf
 class TextInput : public Rectangle
 {
 private:
+    Milliseconds     blinkDuration;
     Rectangle        cursor;
 	int 			 cursorIndex;
     Rectangle        field;
@@ -27,20 +28,19 @@ private:
     static const int keyLeftArrow;
     static const int keyReturn;
     static const int keyRightArrow;
+    bool             isSelected;
+    Milliseconds     lastBlinkTime;
+    int              lastTextSize;
     int              leftPad;
     static void      onFieldKeyboardEvent(int data, int id, Canvas* canvas);
     static void      onFieldMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
-    void             updateCursor();
     
     // Contains size of each text character (ordered from left) in pixels
-    std::vector<int> textCharSizes;
+    std::vector<float> textCharSizes;
     
     int              vertPad;
     
 public:
-
-// TODO: Add updateCursor method, that uses findCharacterPos of sfmlText to compute W
-
 	TextInput();
 	const std::string* getContent();
     Rectangle&         getCursor();
@@ -48,8 +48,11 @@ public:
     int                getLeftPadding() const;
     TextProperties*    getText() override;
     int                getVerticalPadding() const;
+    void               onTick(int tickIndex) override;
+    TextInput&         setBlinkDuration(Milliseconds duration);
     Rectangle&         setColor(Color3D color) override;
 	sgf::TextInput&	   setContent(const std::string& content);
+    TextInput&         setCursorWidth(int width);
     TextInput&         setLeftPadding(int padding);
     Rectangle&         setPosition(Vector2D position) override;
 	Rectangle&         setPriority(int priority) override;
@@ -57,6 +60,7 @@ public:
     Rectangle&         setText(TextProperties* properties) override;
     TextInput&         setVerticalPadding(int padding);
     Rectangle&         setVisible(bool visible) override;
+    void               updateCursor();
 };
 
 }

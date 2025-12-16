@@ -14,12 +14,13 @@ void onSliderEvent(float value, int id, sgf::Canvas* canvas)
 	handle->getText()->size = (unsigned int)(8 + (int)(value * 16));
 	handle->getText()->color.r = (sgf::Byte)(value * 255);
 	handle->getText()->color.b = (sgf::Byte)(value * 255);
-	handle->updateText();
+	handle->updateText();  // It is some solution, but maybe automatize it?
     
     // Update text input padding values
     sgf::TextInput* input = (sgf::TextInput*)canvas->getRectangle(4);
     input->setLeftPadding(value * 20.F);
     input->setVerticalPadding(value * 20.F);
+    input->updateCursor();
 }
 
 void onButtonEvent(int id, sgf::Canvas* canvas)
@@ -41,7 +42,7 @@ int main()
     
     sgf::Canvas canvas;
                 canvas
-                .setDrawingFrequency(60.F)
+                .setTickDuration(1000 / 60)
                 .setSize({ 600, 400 })
                 .setTitle("Simple GUI Framework");
                 
@@ -59,6 +60,7 @@ int main()
                 .setPosition({ 0.F, 0.F })
                 .setPriority(1)
                 .setSize({ 20.F, canvas.getHeight() });
+    slider.setHandleHeight(100.F);
     slider.getHandle().setText(&handleText);
     slider.setSliderListener(onSliderEvent);
                 
@@ -70,15 +72,16 @@ int main()
                 .setSize({ 50.F, 50.F });
     button.setButtonListener(onButtonEvent);
     
-    sgf::TextProperties inputText = { sgf::Color3D({ 0, 0, 0 }), "", 16 };
+    sgf::TextProperties inputText = { sgf::Color3D({ 0, 0, 0 }), "", 80 };
     sgf::TextInput input;
                    input
-                   .setLeftPadding(20.F)
-                   .setVerticalPadding(20.F)
+                   .setLeftPadding(0.F)
+                   .setVerticalPadding(0.F)
                    .setColor({ 0, 0, 255 })
                    .setPosition({ 100.F, 200.F })
                    .setPriority(3)
                    .setSize({ 250.F, 80.F });
+    input.setCursorWidth(4);
     input.getField().setText(&inputText);
     
     /********** RUN THE FUNCTION GRAPHER APPLICATION **********/

@@ -103,6 +103,11 @@ void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position)
         mouseListener(event, position, this->id, this->canvas);
 }
 
+void sgf::Rectangle::onTick(int tickIndex)
+{
+    // Not implemented by default
+}
+
 void sgf::Rectangle::updateText()
 {
 	if(!this->containsText) return;

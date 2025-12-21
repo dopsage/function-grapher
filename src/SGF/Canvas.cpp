@@ -42,13 +42,15 @@ void sgf::Canvas::add(sgf::Rectangle& rect)
     
     // Set the rectangle identity-related properties
     rect.canvas = this;
-    rect.id = rectCount++;
+    rect.id = index;  // This must be `index` because the vector is sorted!
+    
+    rectCount++;
     
     /* If the rectangle is willing to contain a text, make him a one. At the start
      * copy transformation properties of the rectangle by resetting them for it. */
     if(rect.requestedText)
     {
-        texts.emplace_back("", this->sfmlFont);
+        texts.insert(texts.begin() + index, sf::Text("", this->sfmlFont));
         rect.sfmlTextPtr = &texts.back();
         
         rect.containsText = true;
@@ -176,6 +178,16 @@ bool sgf::Canvas::tick()
     }
     
     return false;
+}
+
+void sgf::Canvas::remove(Rectangle& rect)
+{
+    if(rect.containsText)
+        this->texts.erase(texts.begin() + rect.id);
+    
+    this->rectCount--;
+    
+    this->rectangles.erase(rectangles.begin() + rect.id);
 }
 
 sgf::Canvas& sgf::Canvas::setPosition(sgf::Vector2D position)

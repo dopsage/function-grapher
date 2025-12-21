@@ -1,6 +1,7 @@
 
 #include "SGF/Slider.hpp"
 
+#include<iostream>
 void sgf::Slider::onHandleMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Canvas* canvas)
 {
 	/* It is known, that the listening rectangle is actually the slider handle,
@@ -25,14 +26,15 @@ void sgf::Slider::onHandleMouseEvent(sgf::MouseEvent event, sgf::Vector2D positi
 		
 		// Use clamped position to update the slider handle
 		handle->setPosition({ handle->getX(), nextHandleY });
-		
+
 		// Update slider value
 		slider->value = handle->getY() / handleLimitY;
         
         /* Invoke the slider listener because the slider value has just changed.
          * It is possible to access private members since we are still in a member
          * (this static function) of a class to which these private fields belong. */
-        slider->sliderListener(slider->value, slider->getID(), canvas);
+        if(slider->sliderListener != nullptr)
+            slider->sliderListener(slider->value, slider->getID(), canvas);
 	}
 	else if(event == sgf::MouseEvent::UP)
 	{

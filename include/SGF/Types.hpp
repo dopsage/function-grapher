@@ -15,8 +15,10 @@ namespace sgf
     class Canvas;
     class InputParser;
     class Rectangle;
+    class ScrollView;
     class Slider;
     class TextInput;
+    class VList;
     
     enum class MouseEvent
     {

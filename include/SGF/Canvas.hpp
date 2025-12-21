@@ -58,6 +58,7 @@ public:
     float 		 getY() const;
     void         kill();
     bool         tick();
+    void         remove(Rectangle& rect);
     Canvas&      setPosition(Vector2D position);
     Canvas&      setSize(Vector2D size);
     Canvas&      setTickDuration(Milliseconds duration);

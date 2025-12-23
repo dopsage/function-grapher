@@ -1,18 +1,15 @@
 
 #include "SGF/VList.hpp"
 
-#include<iostream>
 void sgf::VList::updateBounds()
 {
-    // List resizes its width to maximum one, and height to total one
-    
-    float maxWidth = 0.F;
-    float totalHeight = 0.F;
-    for(Rectangle* member : this->members)
+    float maxWidth      = 0.F;
+    float totalHeight   = 0.F;
+    for(Rectangle* member : members)
     {
-        if(member->getWidth() > maxWidth)
-            maxWidth = member->getWidth();
-        
+        // List width is the same as the widest member's
+        maxWidth     = (member->getWidth() > maxWidth) ? member->getWidth() : maxWidth;
+        // List height is the sum of all members' heights
         totalHeight += member->getHeight();
     }
     
@@ -20,111 +17,131 @@ void sgf::VList::updateBounds()
 }
 
 sgf::VList::VList() :
-          members()
-{
-    
-    /* Initialize the area rectangle, which is this instance.
-     * Base method definitions are used because some of them are overriden to do
-     * nothing in order to disallow external code from interferring. */
+          members(),
+            toAdd()
+{    
+    // This instance acts as a rather logic rectangular container
     sgf::Rectangle::setSize({ 0, 0 });
-    sgf::Rectangle::setVisible(false);
 }
 
-int sgf::VList::getMemberCount() const
+int sgf::VList::getCount() const
 {
     return this->members.size();
 }
 
-sgf::Rectangle* sgf::VList::getMemberRectangle(int index)
+sgf::Rectangle* sgf::VList::getMember(int index)
 {
-    return (index < 0 || index >= getMemberCount()) ? nullptr : members.at(index);
+    return (index < 0 || index >= getCount()) ? nullptr : members.at(index);
 }
 
-void sgf::VList::insertMember(int index, Rectangle& newMember)
+void sgf::VList::insert(int index, Rectangle& newMember)
 {
-    // Sum heights until the insertion index to obtain the new member height offset
+    // Sum of heights of members with indices below `index` is the `newMember` offset
     float   offset  = 0.F;
-    int     mi      = 0;  // Member index
+    int     mi      = 0;
     for(; mi < index; mi++)
-        offset += getMemberRectangle(mi)->getHeight();
+        offset += getMember(mi)->getHeight();
     
-    // Add the new rectangle visually and logically
+    // New rectangle `newMember` is added to the list both visually and logically
     newMember.setPosition({ getX(), getY() + offset });
+    newMember.setPriority(getPriority());
+    newMember.setVisible(getVisible());
     members.insert(members.begin() + mi, &newMember);
     mi++;
     
-    // Move rectangles past the inserted one down by its height
-    for(; mi < getMemberCount(); mi++)
+    // Manage registering the new member in canvas
+    if(canvas == nullptr)   toAdd.push_back(&newMember);
+    else                    canvas->add(newMember);
+    
+    // Members with indices above `index` need to be moved by `newMember` height down
+    for(; mi < getCount(); mi++)
     {
-        Rectangle* currMember = getMemberRectangle(mi);
+        Rectangle* currMember = getMember(mi);
         currMember->setPosition({ getX(), currMember->getY() + newMember.getHeight() });
     }
     
+    // Reach of the list is finally updated to fit new contents
     this->updateBounds();
 }
 
-void sgf::VList::removeMember(int index)
+void sgf::VList::onAdd()
 {
-    Rectangle* targetMember = getMemberRectangle(index);
-    float offset = targetMember->getHeight();
-    
-    for(int mi = index + 1; mi < getMemberCount(); mi++)
+    /* Now the list contains reference to canvas, add all members which were already
+     * processed but not yet registered on canvas before this moment. */
+    while(!toAdd.empty())
     {
-        Rectangle* currMember = getMemberRectangle(mi);
-        currMember->setPosition({ getX(), getY() - offset });
+        canvas->add(**toAdd.begin());
+        toAdd.erase(toAdd.begin());
+    }
+}
+
+void sgf::VList::remove(int index)
+{
+    // Members with indices above `index` need to be moved by target member height up
+    Rectangle*  targetMember = getMember(index);
+    float       targetHeight = targetMember->getHeight();
+    for(int mi = index + 1; mi < getCount(); mi++)
+    {
+        Rectangle* currMember = getMember(mi);
+        currMember->setPosition({ getX(), currMember->getY() - targetHeight });
     }
     
-    // Remove the target rectangle
-    this->canvas->remove(*targetMember);
+    // Target rectangle is removed from the list
+    this->members.erase(members.begin() + index);
     
+    // Manage unregistering the new member in canvas
+    if(canvas == nullptr)
+    {
+        auto it = std::find(toAdd.begin(), toAdd.end(), targetMember);
+        if(it != toAdd.end()) toAdd.erase(it);
+    }
+    else canvas->remove(*targetMember);
+    
+    // List size needs an update
     this->updateBounds();
 }
 
-sgf::Rectangle& sgf::VList::setColor(sgf::Color3D color)
+void sgf::VList::setColor(sgf::Color3D color)
 {
     // Ignore
-    
-    return *this;
 }
 
-sgf::Rectangle& sgf::VList::setPosition(sgf::Vector2D position)
+void sgf::VList::setPosition(sgf::Vector2D position)
 {
     // Move all inserted rectangles together with the area
-    // ...
+    for(int mi = 0; mi < getCount(); mi++)
+    {
+        Rectangle* member = getMember(mi);
+        member->setPosition({ position.x, member->getY() - getY() + position.y });
+    }
     
 	Rectangle::setPosition(position);
-    
-	return *this;
 }
 
-sgf::Rectangle& sgf::VList::setPriority(int priority)
+void sgf::VList::setPriority(int priority)
 {
-    // All inserted rectangles receive the same priority as area
-    // ...
-    
     sgf::Rectangle::setPriority(priority);
     
-	return *this;
+    // All inserted rectangles receive the same priority as area
+    for(int mi = 0; mi < getCount(); mi++)
+        getMember(mi)->setPriority(priority);
 }
 
-sgf::Rectangle& sgf::VList::setSize(sgf::Vector2D size)
+void sgf::VList::setSize(sgf::Vector2D size)
 {
     // Ignore
-    
-    return *this;
 }
 
-sgf::Rectangle& sgf::VList::setText(sgf::TextProperties* properties)
+void sgf::VList::setText(sgf::TextProperties* properties)
 {
     // Ignore
-    
-    return *this;
 }
 
-sgf::Rectangle& sgf::VList::setVisible(bool visible)
+void sgf::VList::setVisible(bool visible)
 {
-    // Area is always hidden, but for inserted rectangles it is not the case
-    // ...
+    sgf::Rectangle::setVisible(visible);
     
-    return *this;
+    // Area is always hidden, but for members it is not the case
+    for(int mi = 0; mi < getCount(); mi++)
+        getMember(mi)->setVisible(visible);
 }

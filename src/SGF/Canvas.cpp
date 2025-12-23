@@ -50,14 +50,34 @@ void sgf::Canvas::add(sgf::Rectangle& rect)
      * copy transformation properties of the rectangle by resetting them for it. */
     if(rect.requestedText)
     {
-        texts.insert(texts.begin() + index, sf::Text("", this->sfmlFont));
-        rect.sfmlTextPtr = &texts.back();
+        // Algorithm check (approved for now):
+        // index=4
+        // rects: 0 1 2 3
+        // texts: 0 1 2 3
+        // rc: 4, tc: 4, i: 0
         
+        /* Fill the texts deque with dummies until `index` including it, in order
+         * to match the rectangles vector index influenced by the priority (not any
+         * rectangle requests a text, that must be noticed!) */
+        int textsCount = texts.size();
+        if(textsCount <= index)
+        {
+            int i = 0;
+            while(i++ <= index - textsCount)
+                texts.push_back(sf::Text("", this->sfmlFont));
+            
+            // After buffering update texts count
+            textsCount += i;
+        }
+        
+        rect.sfmlTextPtr = &texts.at(index);
         rect.containsText = true;
         rect.updateText();
         rect.setPosition(rect.getPosition());
-        
     }
+    
+    // Notify the rectangle of addition success
+    rect.onAdd();
 }
 
 bool sgf::Canvas::alive() const
@@ -130,6 +150,40 @@ void sgf::Canvas::kill()
 	this->isAlive = false;
 }
 
+void sgf::Canvas::remove(Rectangle& rect)
+{
+    if(rect.containsText)
+        this->texts.erase(texts.begin() + rect.id);
+    
+    this->rectCount--;
+    
+    this->rectangles.erase(rectangles.begin() + rect.id);
+}
+
+void sgf::Canvas::setPosition(sgf::Vector2D position)
+{
+    this->position = position;
+    this->sfmlWindow.setPosition(sf::Vector2i(position.x, position.y));
+}
+
+void sgf::Canvas::setSize(Vector2D size)
+{
+    this->size = size;
+    this->sfmlWindow.setSize(sf::Vector2u(size.x, size.y));
+    this->sfmlWindow.setView(sf::View(sf::FloatRect(0.F, 0.F, size.x, size.y)));
+}
+
+void sgf::Canvas::setTickDuration(Milliseconds duration)
+{
+    this->tickDuration = duration;
+}
+
+void sgf::Canvas::setTitle(const char* title)
+{
+    this->title = title;
+    this->sfmlWindow.setTitle(sf::String(title));
+}
+
 bool sgf::Canvas::tick()
 {
     if(!isAlive) return false;
@@ -178,42 +232,4 @@ bool sgf::Canvas::tick()
     }
     
     return false;
-}
-
-void sgf::Canvas::remove(Rectangle& rect)
-{
-    if(rect.containsText)
-        this->texts.erase(texts.begin() + rect.id);
-    
-    this->rectCount--;
-    
-    this->rectangles.erase(rectangles.begin() + rect.id);
-}
-
-sgf::Canvas& sgf::Canvas::setPosition(sgf::Vector2D position)
-{
-    this->position = position;
-    this->sfmlWindow.setPosition(sf::Vector2i(position.x, position.y));
-    return *this;
-}
-
-sgf::Canvas& sgf::Canvas::setSize(Vector2D size)
-{
-    this->size = size;
-    this->sfmlWindow.setSize(sf::Vector2u(size.x, size.y));
-    this->sfmlWindow.setView(sf::View(sf::FloatRect(0.F, 0.F, size.x, size.y)));
-    return *this;
-}
-
-sgf::Canvas& sgf::Canvas::setTickDuration(Milliseconds duration)
-{
-    this->tickDuration = duration;
-    return *this;
-}
-
-sgf::Canvas& sgf::Canvas::setTitle(const char* title)
-{
-    this->title = title;
-    this->sfmlWindow.setTitle(sf::String(title));
-    return *this;
 }

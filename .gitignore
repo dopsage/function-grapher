@@ -1,2 +1,6 @@
+
+# Project files
+**/*.geany
+
 # Build files output directory
 build/

@@ -18,6 +18,11 @@ keyboardReceiver(nullptr),
     
 }
 
+bool sgf::InputParser::isKeyboardFree() const
+{
+    return keyboardReceiver == nullptr;
+}
+
 void sgf::InputParser::parseSfmlEvent(const sf::Event& event)
 {
     switch(event.type)

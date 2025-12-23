@@ -6,6 +6,7 @@
 
 #include "SGF/Rectangle.hpp"
 #include "SGF/Slider.hpp"
+#include "SGF/VList.hpp"
 
 namespace sgf
 {
@@ -14,21 +15,21 @@ namespace sgf
 class ScrollView : public Rectangle
 {
 private:
-    Rectangle   list;
+    VList       list;
     static void onSliderEvent(float value, int id, Canvas* canvas);
     Slider      slider;
 
 public:
     ScrollView();
-    Rectangle&  getList();
-    Slider&     getSlider();
-    Rectangle&  setColor(Color3D color) override;
-    Rectangle&  setPosition(Vector2D position) override;
-    Rectangle&  setPriority(int priority) override;
-    Rectangle&  setSize(Vector2D size) override;
-    ScrollView& setSliderWidth(float width);
-    Rectangle&  setText(TextProperties* properties) override;
-    Rectangle&  setVisible(bool visible) override;
+    VList&  getList();
+    void    onAdd() override;
+    void    setColor(Color3D color) override;
+    void    setPosition(Vector2D position) override;
+    void    setPriority(int priority) override;
+    void    setSize(Vector2D size) override;
+    void    setSliderWidth(float width);
+    void    setText(TextProperties* properties) override;
+    void    setVisible(bool visible) override;
 };
 
 }

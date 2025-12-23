@@ -24,6 +24,7 @@ private:
 
 public:
     InputParser();
+    bool         isKeyboardFree() const;
     void         parseSfmlEvent(const sf::Event& event);
     InputParser& setKeyboardReceiver(Rectangle* rectangle);
     InputParser& setRectangleSource(RectangleVector* rectangles);

@@ -42,27 +42,27 @@ private:
 
 public:
     Canvas();
-    void         add(Rectangle& rect);
-    bool         alive() const;
-    Milliseconds getElapsedTime() const;
-    float 		 getHeight() const;
-    InputParser& getInputParser();
-    Vector2D     getPosition() const;
-    Rectangle*   getRectangle(int id);
-    Vector2D     getSize() const;
-    Milliseconds getTickDuration() const;
-    int          getTickIndex() const;
-    const char*  getTitle() const;
-    float 		 getWidth() const;
-    float 		 getX() const;
-    float 		 getY() const;
-    void         kill();
-    bool         tick();
-    void         remove(Rectangle& rect);
-    Canvas&      setPosition(Vector2D position);
-    Canvas&      setSize(Vector2D size);
-    Canvas&      setTickDuration(Milliseconds duration);
-    Canvas&      setTitle(const char* title);
+    void            add(Rectangle& rect);
+    bool            alive() const;
+    Milliseconds    getElapsedTime() const;
+    float 		    getHeight() const;
+    InputParser&    getInputParser();
+    Vector2D        getPosition() const;
+    Rectangle*      getRectangle(int id);
+    Vector2D        getSize() const;
+    Milliseconds    getTickDuration() const;
+    int             getTickIndex() const;
+    const char*     getTitle() const;
+    float 		    getWidth() const;
+    float 		    getX() const;
+    float 		    getY() const;
+    void            kill();
+    void            remove(Rectangle& rect);
+    void            setPosition(Vector2D position);
+    void            setSize(Vector2D size);
+    void            setTickDuration(Milliseconds duration);
+    void            setTitle(const char* title);
+    bool            tick();
 };
 
 }

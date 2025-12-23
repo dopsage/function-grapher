@@ -1,7 +1,8 @@
 
 #include "SGF/Rectangle.hpp"
 
-sgf::Rectangle::Rectangle() : 
+sgf::Rectangle::Rectangle() :
+          canvas(nullptr),
            color({0, 0, 0}),
     containsText(false),
 keyboardListener(nullptr),
@@ -103,6 +104,11 @@ void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position)
         mouseListener(event, position, this->id, this->canvas);
 }
 
+void sgf::Rectangle::onAdd()
+{
+    // Not implemented by default
+}
+
 void sgf::Rectangle::onTick(int tickIndex)
 {
     // Not implemented by default
@@ -127,54 +133,47 @@ void sgf::Rectangle::updateText()
     sfmlTextPtr->findCharacterPos(0).x;
 }
 
-sgf::Rectangle& sgf::Rectangle::setColor(sgf::Color3D color)
+void sgf::Rectangle::setColor(sgf::Color3D color)
 {
 	this->color = color;
 	this->sfmlRect.setFillColor(sf::Color(color.r, color.g, color.b));
-	return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback)
+void sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback)
 {
     this->keyboardListener = callback;
-    return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setMouseListener(sgf::MouseListener callback)
+void sgf::Rectangle::setMouseListener(sgf::MouseListener callback)
 {
     this->mouseListener = callback;
-    return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setMeta(void* meta)
+void sgf::Rectangle::setMeta(void* meta)
 {
     this->meta = meta;
-    return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setPosition(sgf::Vector2D position)
+void sgf::Rectangle::setPosition(sgf::Vector2D position)
 {
 	this->position = position;
 	this->sfmlRect.setPosition(sf::Vector2f(position.x, position.y));
     if(this->sfmlTextPtr != nullptr)
         sfmlTextPtr->setPosition(sf::Vector2f(position.x, position.y));
-	return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setPriority(int priority)
+void sgf::Rectangle::setPriority(int priority)
 {
 	this->priority = priority;
-	return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setSize(sgf::Vector2D size)
+void sgf::Rectangle::setSize(sgf::Vector2D size)
 {
 	this->size = size;
 	this->sfmlRect.setSize(sf::Vector2f(size.x, size.y));
-	return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setText(sgf::TextProperties* properties)
+void sgf::Rectangle::setText(sgf::TextProperties* properties)
 {
     /* If this is first text-setting call, mark this rectangle as a one containing
      * a text - later canvas detects that DURING THE RECTANGLE ADDITION and assigns
@@ -182,12 +181,9 @@ sgf::Rectangle& sgf::Rectangle::setText(sgf::TextProperties* properties)
      * the canvas with SINGLE `updateText` method call. */
     this->requestedText = true;
     this->textProps = properties;
-    
-    return *this;
 }
 
-sgf::Rectangle& sgf::Rectangle::setVisible(bool visible)
+void sgf::Rectangle::setVisible(bool visible)
 {
     this->visible = visible;
-    return *this;
 }

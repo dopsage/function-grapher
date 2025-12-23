@@ -28,7 +28,7 @@ void sgf::Slider::onHandleMouseEvent(sgf::MouseEvent event, sgf::Vector2D positi
 		handle->setPosition({ handle->getX(), nextHandleY });
 
 		// Update slider value
-		slider->value = handle->getY() / handleLimitY;
+		slider->value = (handle->getY() - slider->getY()) / (handleLimitY - slider->getY());
         
         /* Invoke the slider listener because the slider value has just changed.
          * It is possible to access private members since we are still in a member
@@ -58,27 +58,26 @@ sgf::Rectangle::Rectangle(),
     this->handle.setMeta(this);
 }
 
-sgf::Rectangle& sgf::Slider::getHandle()
-{
-	return this->handle;
-}
-
 float sgf::Slider::getValue() const
 {
 	return this->value;
 }
 
-sgf::Rectangle& sgf::Slider::setColor(Color3D color)
+void sgf::Slider::onAdd()
+{
+    // Add handle rectangle instance on canvas setting
+    this->canvas->add(handle);
+}
+
+void sgf::Slider::setColor(Color3D color)
 {
 	sgf::Rectangle::setColor(color);
     
     // Handle color is an inverse of the background's
 	this->handle.setColor({ (sgf::Byte)(255 - color.r), (sgf::Byte)(255 - color.g), (sgf::Byte)(255 - color.b) });
-    
-	return *this;
 }
 
-sgf::Rectangle& sgf::Slider::setPosition(sgf::Vector2D position)
+void sgf::Slider::setPosition(sgf::Vector2D position)
 {
     // First move the handle according to the new background's position
 	handle.setPosition({
@@ -87,51 +86,39 @@ sgf::Rectangle& sgf::Slider::setPosition(sgf::Vector2D position)
 	});
     
 	Rectangle::setPosition(position);
-    
-	return *this;
 }
 
-sgf::Rectangle& sgf::Slider::setPriority(int priority)
+void sgf::Slider::setPriority(int priority)
 {
 	sgf::Rectangle::setPriority(priority);
     
     // Handle priority is the same as the background's
 	this->handle.setPriority(priority);
-    
-	return *this;
 }
 
-sgf::Rectangle& sgf::Slider::setSize(sgf::Vector2D size)
+void sgf::Slider::setSize(sgf::Vector2D size)
 {
 	sgf::Rectangle::setSize(size);
     
     // Handle width is dependant on the background's, but its height is variable
 	handle.setSize({ getWidth(), handle.getHeight() });
-    
-	return *this;
 }
 
-sgf::Rectangle& sgf::Slider::setVisible(bool visible)
+void sgf::Slider::setVisible(bool visible)
 {
     sgf::Rectangle::setVisible(visible);
     
     // Handle visibility is dependant on background's
     handle.setVisible(visible);
-    
-    return *this;
 }
 
-sgf::Slider& sgf::Slider::setSliderListener(sgf::SliderListener callback)
+void sgf::Slider::setSliderListener(sgf::SliderListener callback)
 {
     this->sliderListener = callback;
-    return *this;
 }
 
-// TODO: Consider if getHandle could be allowed to change instead of reduntant methods like this
-
-sgf::Slider& sgf::Slider::setHandleHeight(float height)
+void sgf::Slider::setHandleHeight(float height)
 {
     // I cannot really have an idea on why one would need a getter for handle height
 	this->handle.setSize({ handle.getWidth(), height });
-    return *this;
 }

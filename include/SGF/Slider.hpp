@@ -29,22 +29,23 @@ private:
 
 public:
 	Slider();
-	Rectangle& getHandle();
     
     /* Returns a number in closed range <0,1> which indicates a normalized position
      * of the handle relative to the background it slides along (0 indicates top). */
-	float 	   getValue() const;
+	float   getValue() const;
+    
+    void    onAdd() override;
     
     /* Sets color of the slider background to `color` and color of the slider handle
      * to inverse of the `color`. */
-	Rectangle& setColor(Color3D color) override;
+	void    setColor(Color3D color) override;
     
-	Rectangle& setPosition(Vector2D position) override;
-	Rectangle& setPriority(int priority) override;
-	Rectangle& setSize(Vector2D size) override;
-    Rectangle& setVisible(bool visible) override;
-    Slider&    setSliderListener(SliderListener callback);
-	Slider&    setHandleHeight(float height);
+	void    setPosition(Vector2D position) override;
+	void    setPriority(int priority) override;
+	void    setSize(Vector2D size) override;
+    void    setVisible(bool visible) override;
+    void    setSliderListener(SliderListener callback);
+	void    setHandleHeight(float height);
 };
 
 }

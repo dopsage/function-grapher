@@ -55,29 +55,30 @@ public:
     float                   getY() const;
     
     // These two methods invoke keyboard and mouse listeners with given parameters 
-    void               onKeyboardInput(int data);
-    void               onMouseInput(MouseEvent event, Vector2D position);
+    void                    onKeyboardInput(int data);
+    void                    onMouseInput(MouseEvent event, Vector2D position);
     
-    virtual void       onTick(int tickIndex);
-	void 			   updateText();
-    virtual Rectangle& setColor(Color3D color);
+    virtual void            onAdd();
+    virtual void            onTick(int tickIndex);
+	void 			        updateText();
+    virtual void            setColor(Color3D color);
     
     // Rectangle can store only one callback method per device.
-    Rectangle&         setKeyboardListener(KeyboardListener callback);
-    Rectangle&         setMouseListener(MouseListener callback);
+    void                    setKeyboardListener(KeyboardListener callback);
+    void                    setMouseListener(MouseListener callback);
     
-    Rectangle&         setMeta(void* meta);
-    virtual Rectangle& setPosition(Vector2D position);
-	virtual Rectangle& setPriority(int priority);
-	virtual Rectangle& setSize(Vector2D size);
+    void                    setMeta(void* meta);
+    virtual void            setPosition(Vector2D position);
+	virtual void            setPriority(int priority);
+	virtual void            setSize(Vector2D size);
     
     /* This method provides a source of text data for this rectangle, which in return
      * later (on calling canvas `add` with this rectangle as parameter) receives
      * a dedicated SFML Text instance which can be customized through provided
      * TextProperties instance. */
-    virtual Rectangle& setText(TextProperties* properties);
+    virtual void            setText(TextProperties* properties);
     
-    virtual Rectangle& setVisible(bool visible);
+    virtual void            setVisible(bool visible);
 };
 
 }

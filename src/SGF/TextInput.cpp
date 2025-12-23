@@ -80,9 +80,6 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 			break;
 		}
 	}
-    
-// TODO: When cursor moves to right while at -1, it jumps to the end of input ...
-// TODO: Need to take later character size scalling into account! like setsize and there you would change whole vector by some scalar ...
 
     // Update text character sizes vector, basing on the text width change and cursor position
     int textWidthDelta = field->getText()->width - oldTextWidth;
@@ -99,17 +96,15 @@ void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D posi
     sgf::Rectangle* field = canvas->getRectangle(id);
     sgf::TextInput* input = (sgf::TextInput*)field->getMeta();
     
-    
-    
     if(event == sgf::MouseEvent::DOWN)
     {
         input->isFieldMouseDown = true;
     }
-    else if(!input->isSelected && input->isFieldMouseDown && event == sgf::MouseEvent::UP && field->contains(position))
+    else if(!input->isSelected && canvas->getInputParser().isKeyboardFree() && input->isFieldMouseDown && event == sgf::MouseEvent::UP && field->contains(position))
     {
         /* Field got clicked on, set it as keyboard listener (select).
          * Do not forget about resetting cursor position to the end of the input. */
-        input->cursorIndex = input->getContent()->length() - 1; 
+        input->cursorIndex = input->getContent()->length() - 1;
         canvas->getInputParser().setKeyboardReceiver(field);
         
         // Show cursor and select
@@ -119,6 +114,40 @@ void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D posi
         
         input->isFieldMouseDown = false;
     }
+}
+
+void sgf::TextInput::updateCursor()
+{
+    if(!isSelected) return;
+    
+    int currTextSize = field.getText()->size;
+    if(lastTextSize != currTextSize)
+    {
+        /* Character size property has been changed, thus the whole text needs to
+         * be re-inputted in order to fill character sizes array with appropriate
+         * new sizes. This is not the best solution but it is logical. */
+        int         oldCursorIndex = cursorIndex;
+        std::string oldContent     = std::string(*this->getContent());
+        cursorIndex  = -1;
+        lastTextSize = currTextSize;
+        textCharSizes.clear();
+        setContent("");
+        for(int i = 0; i < oldContent.size(); i++)
+            sgf::TextInput::onFieldKeyboardEvent((int)oldContent[i], field.getID(), canvas);
+        
+        /* In the end, the method needs to call itself again in order to return
+         * the cursor back to its original position, after re-inputting. */
+        cursorIndex  = oldCursorIndex;
+        updateCursor();
+    }
+    
+    // Add character positions until the cursor position to get the X shift
+    int xShift = 0;
+    for(int i = 0; i < this->cursorIndex + 1; i++)
+        xShift += this->textCharSizes[i];
+    
+    this->cursor.setSize({ cursor.getWidth(), field.getHeight() });
+    this->cursor.setPosition({ field.getX() + xShift - cursor.getWidth(), field.getY() });
 }
 
 sgf::TextInput::TextInput() :
@@ -149,11 +178,6 @@ const std::string* sgf::TextInput::getContent()
 	return &field.getText()->content;
 }
 
-sgf::Rectangle& sgf::TextInput::getCursor()
-{
-    return this->cursor;
-}
-
 sgf::Rectangle& sgf::TextInput::getField()
 {
     return this->field;
@@ -174,6 +198,13 @@ int sgf::TextInput::getVerticalPadding() const
     return this->vertPad;
 }
 
+void sgf::TextInput::onAdd()
+{
+    // Add other rectangle instances on canvas setting
+    this->canvas->add(field);
+    this->canvas->add(cursor);
+}
+
 void sgf::TextInput::onTick(int tickIndex)
 {
     // Perform the cursor blinking
@@ -185,13 +216,12 @@ void sgf::TextInput::onTick(int tickIndex)
     }
 }
 
-sgf::TextInput& sgf::TextInput::setBlinkDuration(Milliseconds duration)
+void sgf::TextInput::setBlinkDuration(Milliseconds duration)
 {
     this->blinkDuration = duration;
-    return *this;
 }
 
-sgf::Rectangle& sgf::TextInput::setColor(sgf::Color3D color)
+void sgf::TextInput::setColor(sgf::Color3D color)
 {
     sgf::Rectangle::setColor(color);
     
@@ -200,52 +230,44 @@ sgf::Rectangle& sgf::TextInput::setColor(sgf::Color3D color)
     
     // Cursor color is the background's
     this->cursor.setColor(color);
-    
-	return *this;
 }
 
-sgf::TextInput& sgf::TextInput::setContent(const std::string& content)
+void sgf::TextInput::setContent(const std::string& content)
 {
 	// Set just the content field of the set text properties
 	field.getText()->content = content;
 	field.updateText();
-    
-	return *this;
 }
 
-sgf::TextInput& sgf::TextInput::setCursorWidth(int width)
+void sgf::TextInput::setCursorWidth(int width)
 {
     this->cursor.setSize({ (float)width, cursor.getHeight() });
-    return *this;
 }
 
-sgf::TextInput& sgf::TextInput::setLeftPadding(int padding)
+void sgf::TextInput::setLeftPadding(int padding)
 {
     this->leftPad = padding;
     
     // Refresh position & size
     this->setPosition(this->getPosition());
-    this->setSize(this->getSize()); 
-
-    return *this;
+    this->setSize(this->getSize());
 }
 
-sgf::Rectangle& sgf::TextInput::setPosition(sgf::Vector2D position)
+void sgf::TextInput::setPosition(sgf::Vector2D position)
 {
     sgf::Rectangle::setPosition(position);
     this->field.setPosition({ getX() + this->leftPad, getY() + this->vertPad });
-    return *this;
+    this->updateCursor();
 }
 
-sgf::Rectangle& sgf::TextInput::setPriority(int priority)
+void sgf::TextInput::setPriority(int priority)
 {
     sgf::Rectangle::setPriority(priority);
     this->field.setPriority(priority);
     this->cursor.setPriority(priority);
-    return *this;
 }
 
-sgf::Rectangle& sgf::TextInput::setSize(sgf::Vector2D size)
+void sgf::TextInput::setSize(sgf::Vector2D size)
 {
     sgf::Rectangle::setSize(size);
     
@@ -257,26 +279,23 @@ sgf::Rectangle& sgf::TextInput::setSize(sgf::Vector2D size)
         field.getText()->size = field.getHeight();
         field.updateText();
     }
-    return *this;
 }
 
-sgf::Rectangle& sgf::TextInput::setText(sgf::TextProperties* properties)
+void sgf::TextInput::setText(sgf::TextProperties* properties)
 {
-    return *this;
+    // Ignore
 }
 
-sgf::TextInput& sgf::TextInput::setVerticalPadding(int padding)
+void sgf::TextInput::setVerticalPadding(int padding)
 {
     this->vertPad = padding;
     
     // Refresh position & size
     this->setPosition(this->getPosition());
     this->setSize(this->getSize()); 
-
-    return *this;
 }
 
-sgf::Rectangle& sgf::TextInput::setVisible(bool visible)
+void sgf::TextInput::setVisible(bool visible)
 {
     sgf::Rectangle::setVisible(visible);
     
@@ -284,38 +303,4 @@ sgf::Rectangle& sgf::TextInput::setVisible(bool visible)
     
     // Normally, you cannot show cursor together with the text input, but you can hide it
     if(!visible) this->cursor.setVisible(false);
-    
-    return *this;
-}
-
-void sgf::TextInput::updateCursor()
-{
-    int currTextSize = field.getText()->size;
-    if(lastTextSize != currTextSize)
-    {
-        /* Character size property has been changed, thus the whole text needs to
-         * be re-inputted in order to fill character sizes array with appropriate
-         * new sizes. This is not the best solution but it is logical. */
-        int         oldCursorIndex = cursorIndex;
-        std::string oldContent     = std::string(*this->getContent());
-        cursorIndex  = -1;
-        lastTextSize = currTextSize;
-        textCharSizes.clear();
-        setContent("");
-        for(int i = 0; i < oldContent.size(); i++)
-            sgf::TextInput::onFieldKeyboardEvent((int)oldContent[i], field.getID(), canvas);
-        
-        /* In the end, the method needs to call itself again in order to return
-         * the cursor back to its original position, after re-inputting. */
-        cursorIndex  = oldCursorIndex;
-        updateCursor();
-    }
-    
-    // Add character positions until the cursor position to get the X shift
-    int xShift = 0;
-    for(int i = 0; i < this->cursorIndex + 1; i++)
-        xShift += this->textCharSizes[i];
-    
-    this->cursor.setSize({ cursor.getWidth(), field.getHeight() });
-    this->cursor.setPosition({ field.getX() + xShift - cursor.getWidth(), field.getY() });
 }

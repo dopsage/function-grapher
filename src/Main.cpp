@@ -6,6 +6,8 @@
 #include "SGF/TextInput.hpp"
 #include "SGF/Types.hpp"
 
+static void onTextInputEvent(const std::string& content, int id, sgf::Canvas* canvas);
+
 static bool run;
 
 int main()
@@ -16,9 +18,9 @@ int main()
     sgf::Rectangle  rBackground;
     sgf::ScrollView svExpressions;
     
-    cCanvas.setPosition({ 0, 0 });
+    cCanvas.setPosition({ 1920/2, 0 });
     cCanvas.setSize({ 600, 400 });
-    cCanvas.setTickDuration({ 1000/60 });
+    cCanvas.setTickDuration({ 1000/60 });   // It works, but the loop still wastes CPU power (100% usage)
     cCanvas.setTitle("Function grapher");
     
     rBackground.setColor({ 0, 0, 0 });
@@ -40,15 +42,22 @@ int main()
     sgf::TextInput      tiInputs[TIC];
     for(int tid = 0; tid < TIC; tid++)
     {
-        tpProps [tid] = { {0, 0, 0}, "", 16 };  // This segfaults when content is not an empty string!
+        /* This segfaults when content is not an empty string, and user click the
+         * text input in order to edit!
+         * NOTE: segfault occurs when TI is selected and user inputs some character that
+         * passes through filtering phase ... but it works on enter so ? */
+        tpProps [tid] = { {0, 0, 0}, "", 16 };
+        
         tiInputs[tid].setBlinkDuration(100);
         tiInputs[tid].setColor({ 64, 64, 0 });
         tiInputs[tid].setCursorWidth(2);
+        tiInputs[tid].setFilter(sgf::InputFilter::MATH);
         tiInputs[tid].setLeftPadding(10);
+        tiInputs[tid].setListener(onTextInputEvent);
         tiInputs[tid].setPosition({ 100, 100 });
-        tiInputs[tid].setSize({ 200, 80 });
+        tiInputs[tid].setSize({ 192, 36 });
         tiInputs[tid].getField().setText(&tpProps[tid]);
-        tiInputs[tid].setVerticalPadding(10);
+        tiInputs[tid].setVerticalPadding(5);
         svExpressions.getList().insert(tid, tiInputs[tid]);
     }
     
@@ -67,4 +76,9 @@ int main()
     }
     
     return 0;
+}
+
+static void onTextInputEvent(const std::string& content, int id, sgf::Canvas* canvas)
+{
+    std::cout << "TextInputListener[id=" << id << "]: " << content << std::endl;
 }

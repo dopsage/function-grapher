@@ -6,6 +6,16 @@ const int sgf::TextInput::keyLeftArrow = -71;
 const int sgf::TextInput::keyReturn = -58;
 const int sgf::TextInput::keyRightArrow = -72;
 
+bool sgf::TextInput::isAllowedByFilter(int unicode)
+{
+    // If unicode character falls into allowed range, it is obviously allowed
+    for(const auto& range : *currentFilterPtr)
+        if(unicode >= range.first && unicode <= range.second)
+            return true;
+
+    return false;
+}
+
 void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 {
 	// Assume metadata of the field instance is set to the parenting text input instance
@@ -45,6 +55,10 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
             input->cursor.setVisible(false);
             input->isSelected = false;
             
+            // Invoke the listener
+            if(input->listener != nullptr)
+                input->listener(*input->getContent(), input->getID(), canvas);
+            
 			break;
 		}
 		case sgf::TextInput::keyRightArrow:
@@ -60,18 +74,9 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 		}
 		default:
 		{
-			if(
-            
-// TODO: Implement some serious filter ...
-
-				(data >= 65 && data <= 90) ||	// Big letters
-				(data >= 97 && data <= 122) ||	// Small letters
-				data == 32 ||					// Space ` `
-				data == 46 ||					// Period `.`
-				data == 44						// Comma `,`
-			)
+			if(input->isAllowedByFilter(data))
 			{
-				// Field received some other unicode, insert it into content string	
+				// Field received some other unicode, insert it into content string
 				std::string updated = std::string(*input->getContent());
 				updated.insert(input->cursorIndex + 1, 1, (char)data);
 				input->setContent(updated);
@@ -153,6 +158,8 @@ void sgf::TextInput::updateCursor()
 sgf::TextInput::TextInput() :
             blinkDuration(0),
                    cursor(),
+            currentFilter(sgf::InputFilter::BYTE),
+         currentFilterPtr(&sgf::IF_BYTE),
 			  cursorIndex(-1),
                     field(),
          isFieldMouseDown(false),
@@ -160,6 +167,7 @@ sgf::TextInput::TextInput() :
             lastBlinkTime(0),
              lastTextSize(0),
                   leftPad(0.F),
+                 listener(nullptr),
             textCharSizes(),
                   vertPad(0.F)
 {
@@ -181,6 +189,11 @@ const std::string* sgf::TextInput::getContent()
 sgf::Rectangle& sgf::TextInput::getField()
 {
     return this->field;
+}
+
+sgf::InputFilter sgf::TextInput::getFilter()
+{
+    return this->currentFilter;
 }
 
 int sgf::TextInput::getLeftPadding() const
@@ -234,7 +247,7 @@ void sgf::TextInput::setColor(sgf::Color3D color)
 
 void sgf::TextInput::setContent(const std::string& content)
 {
-	// Set just the content field of the set text properties
+    // Set just the content field of the set text properties
 	field.getText()->content = content;
 	field.updateText();
 }
@@ -244,6 +257,19 @@ void sgf::TextInput::setCursorWidth(int width)
     this->cursor.setSize({ (float)width, cursor.getHeight() });
 }
 
+void sgf::TextInput::setFilter(sgf::InputFilter filter)
+{
+    switch(this->currentFilter = filter)
+    {
+    case sgf::InputFilter::BYTE:
+        this->currentFilterPtr = &sgf::IF_BYTE;
+        break;
+    case sgf::InputFilter::MATH:
+        this->currentFilterPtr = &sgf::IF_MATH;
+        break;
+    }
+}
+
 void sgf::TextInput::setLeftPadding(int padding)
 {
     this->leftPad = padding;
@@ -251,6 +277,11 @@ void sgf::TextInput::setLeftPadding(int padding)
     // Refresh position & size
     this->setPosition(this->getPosition());
     this->setSize(this->getSize());
+}
+
+void sgf::TextInput::setListener(TextInputListener callback)
+{
+    this->listener = callback;
 }
 
 void sgf::TextInput::setPosition(sgf::Vector2D position)

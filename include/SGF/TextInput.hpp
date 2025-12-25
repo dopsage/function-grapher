@@ -20,9 +20,12 @@ class TextInput final : public Rectangle
 {
 private:
     Milliseconds        blinkDuration;
-    Rectangle           cursor;
-	int 			    cursorIndex;
+    Rectangle           cursor;         // Each TI has its own cursor ... not perfect but good for now
+	InputFilter         currentFilter;
+    RangeVector*        currentFilterPtr;
+    int 			    cursorIndex;
     Rectangle           field;
+    bool                isAllowedByFilter(int unicode);
     bool                isFieldMouseDown;
     static const int    keyBackspace;
     static const int    keyLeftArrow;
@@ -32,6 +35,7 @@ private:
     Milliseconds        lastBlinkTime;
     int                 lastTextSize;
     int                 leftPad;
+    TextInputListener   listener;
     static void         onFieldKeyboardEvent(int data, int id, Canvas* canvas);
     static void         onFieldMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
     void                updateCursor();
@@ -45,6 +49,7 @@ public:
 	TextInput();
 	const std::string*  getContent();
     Rectangle&          getField();
+    InputFilter         getFilter();
     int                 getLeftPadding() const;
     TextProperties*     getText() override;
     int                 getVerticalPadding() const;
@@ -54,7 +59,9 @@ public:
     void                setColor(Color3D color) override;
 	void	            setContent(const std::string& content);
     void                setCursorWidth(int width);
+    void                setFilter(InputFilter filter);
     void                setLeftPadding(int padding);
+    void                setListener(TextInputListener callback);
     void                setPosition(Vector2D position) override;
 	void                setPriority(int priority) override;
 	void                setSize(Vector2D size) override;

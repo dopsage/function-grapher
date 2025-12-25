@@ -64,7 +64,7 @@ void sgf::Canvas::add(sgf::Rectangle& rect)
         {
             int i = 0;
             while(i++ <= index - textsCount)
-                texts.push_back(sf::Text("", this->sfmlFont));
+                texts.push_back(sf::Text(rect.getText()->content, this->sfmlFont));
             
             // After buffering update texts count
             textsCount += i;

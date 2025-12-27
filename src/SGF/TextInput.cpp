@@ -22,7 +22,7 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 	sgf::Rectangle* field = canvas->getRectangle(id);
 	sgf::TextInput* input = (sgf::TextInput*)field->getMeta();
     
-    bool wasCursorMoved = false;
+    int oldCursorIndex  = input->cursorIndex;
     int oldTextWidth    = field->getText()->width;
     
 	switch(data)
@@ -43,7 +43,6 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 		{
 			// Field received left arrow, move cursor by one to left (limit to -1)		
 			input->cursorIndex = (input->cursorIndex > -1) ? (input->cursorIndex - 1) : (-1);
-            wasCursorMoved = true;
 			break;
 		}
 		case sgf::TextInput::keyReturn:
@@ -68,8 +67,6 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 			input->cursorIndex = (input->cursorIndex < inputLength - 1) ?
                                  (input->cursorIndex + 1) :
                                  (inputLength - 1);
-            
-            wasCursorMoved = true;
 			break;
 		}
 		default:
@@ -78,10 +75,14 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 			{
 				// Field received some other unicode, insert it into content string
 				std::string updated = std::string(*input->getContent());
+                
+/* This is dangerous because it assumes `data` is ASCII character while it is
+ * a unicode. There will be data corruption if unicode is allowed by filter! */
 				updated.insert(input->cursorIndex + 1, 1, (char)data);
+                
 				input->setContent(updated);
 				input->cursorIndex++;
-			}
+            }
 			break;
 		}
 	}
@@ -90,7 +91,7 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
     int textWidthDelta = field->getText()->width - oldTextWidth;
          if(textWidthDelta < 0) input->textCharSizes.erase (input->textCharSizes.begin() + input->cursorIndex + 1);
     else if(textWidthDelta > 0) input->textCharSizes.insert(input->textCharSizes.begin() + input->cursorIndex, textWidthDelta);
-    if(textWidthDelta || wasCursorMoved)
+    if(textWidthDelta || (input->cursorIndex != oldCursorIndex))
         input->updateCursor();
 }
 
@@ -107,15 +108,34 @@ void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D posi
     }
     else if(!input->isSelected && canvas->getInputParser().isKeyboardFree() && input->isFieldMouseDown && event == sgf::MouseEvent::UP && field->contains(position))
     {
+        // Ensure safety of the text content according to the current input filter
+        std::string currContent     = std::string(*input->getContent());
+        bool        alteredContent  = false;
+        int         i               = 0;
+        while(i < currContent.length())
+        {
+            if(!input->isAllowedByFilter(currContent[i]))
+            {
+                /* This is an invalid character (as of the current filter), it needs
+                 * to be erased, and thus whole loop needs to start over due to size change. */
+                currContent.erase(currContent.begin() + i);
+                alteredContent = true;
+                i = 0;
+            }
+            else i++;
+        }
+        if(alteredContent)
+            input->setContent(currContent);
+        
         /* Field got clicked on, set it as keyboard listener (select).
          * Do not forget about resetting cursor position to the end of the input. */
         input->cursorIndex = input->getContent()->length() - 1;
         canvas->getInputParser().setKeyboardReceiver(field);
         
-        // Show cursor and select
+        // Show select and show cursor
         input->cursor.setVisible(true);
-        input->updateCursor();
         input->isSelected = true;
+        input->updateCursor();
         
         input->isFieldMouseDown = false;
     }
@@ -137,6 +157,7 @@ void sgf::TextInput::updateCursor()
         lastTextSize = currTextSize;
         textCharSizes.clear();
         setContent("");
+        
         for(int i = 0; i < oldContent.size(); i++)
             sgf::TextInput::onFieldKeyboardEvent((int)oldContent[i], field.getID(), canvas);
         

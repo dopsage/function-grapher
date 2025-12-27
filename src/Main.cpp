@@ -42,10 +42,6 @@ int main()
     sgf::TextInput      tiInputs[TIC];
     for(int tid = 0; tid < TIC; tid++)
     {
-        /* This segfaults when content is not an empty string, and user click the
-         * text input in order to edit!
-         * NOTE: segfault occurs when TI is selected and user inputs some character that
-         * passes through filtering phase ... but it works on enter so ? */
         tpProps [tid] = { {0, 0, 0}, "", 16 };
         
         tiInputs[tid].setBlinkDuration(100);
@@ -60,6 +56,12 @@ int main()
         tiInputs[tid].setVerticalPadding(5);
         svExpressions.getList().insert(tid, tiInputs[tid]);
     }
+    
+    //debug
+    tpProps[0].content = ".#.";
+    tpProps[1].content = ".#";
+    tpProps[2].content = "#.";
+    tpProps[3].content = "###VV^^B %$";
     
     cCanvas.add(rBackground);
     cCanvas.add(svExpressions);

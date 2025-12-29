@@ -22,47 +22,47 @@ namespace sgf
 class Canvas final
 {
 private:
-    Milliseconds             constructionTime;
-    float                    drawingFrequency;
-    static const std::string fontFile;
-    Milliseconds             tickDuration;
-    Milliseconds             getEpochTime() const;
-    InputParser              inputParser;
-    bool                     isAlive;
-    Milliseconds             lastDrawTime;
-    Vector2D                 position;
-    RectangleVector          rectangles;
-    int                      rectCount;
-    sf::Font                 sfmlFont;
-    sf::RenderWindow         sfmlWindow;
-    Vector2D                 size;
-    std::deque<sf::Text>     texts;
-    int                      tickIndex;
-    const char*              title;
+    Milliseconds                constructionTime;
+    float                       drawingFrequency;
+    static const std::string    fontFile;
+    Milliseconds                tickDuration;
+    Milliseconds                getEpochTime() const;
+    InputParser                 inputParser;
+    bool                        isAlive;
+    Milliseconds                lastDrawTime;
+    Vector2D                    position;
+    RectangleDeque              rectangles;
+    int                         rectCount;
+    sf::Font                    sfmlFont;
+    sf::RenderWindow            sfmlWindow;
+    Vector2D                    size;
+    std::deque<sf::Text>        texts;
+    int                         tickIndex;
+    std::string                 title;
 
 public:
     Canvas();
-    void            add(Rectangle& rect);
-    bool            alive() const;
-    Milliseconds    getElapsedTime() const;
-    float 		    getHeight() const;
-    InputParser&    getInputParser();
-    Vector2D        getPosition() const;
-    Rectangle*      getRectangle(int id);
-    Vector2D        getSize() const;
-    Milliseconds    getTickDuration() const;
-    int             getTickIndex() const;
-    const char*     getTitle() const;
-    float 		    getWidth() const;
-    float 		    getX() const;
-    float 		    getY() const;
-    void            kill();
-    void            remove(Rectangle& rect);
-    void            setPosition(Vector2D position);
-    void            setSize(Vector2D size);
-    void            setTickDuration(Milliseconds duration);
-    void            setTitle(const char* title);
-    bool            tick();
+    void                add(Rectangle& rect);
+    bool                alive() const;
+    Milliseconds        getElapsedTime() const;
+    float 		        getHeight() const;
+    InputParser&        getInputParser();
+    Vector2D            getPosition() const;
+    Rectangle*          getRectangle(int id);
+    Vector2D            getSize() const;
+    Milliseconds        getTickDuration() const;
+    int                 getTickIndex() const;
+    const std::string&  getTitle() const;
+    float 		        getWidth() const;
+    float 		        getX() const;
+    float 		        getY() const;
+    void                kill();
+    void                remove(Rectangle& rect);
+    void                setPosition(Vector2D position);
+    void                setSize(Vector2D size);
+    void                setTickDuration(Milliseconds duration);
+    void                setTitle(const std::string& title);
+    bool                tick();
 };
 
 }

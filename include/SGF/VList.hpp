@@ -15,17 +15,19 @@ namespace sgf
 class VList : public Rectangle
 {
 private:
-    void                    updateBounds();
-    RectangleVector         members;
-    std::vector<Rectangle*> toAdd;
+    void            updateBounds();
+    RectangleDeque  members;
+    RectangleDeque  toAdd;
 
 public:
     VList();
     int         getCount() const;
     Rectangle*  getMember(int index);
-    void        insert(int index, Rectangle& rect);
+    void        insert(int index, Rectangle* rect);
     void        onAdd() override;
+    void        onRemove() override;
     void        remove(int index);
+    void        remove(Rectangle* target);
     void        setColor(Color3D color) override;
     void        setPosition(Vector2D position) override;
     void        setPriority(int priority) override;

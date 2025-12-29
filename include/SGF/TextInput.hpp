@@ -47,13 +47,19 @@ private:
     
 public:
 	TextInput();
+    void                copy(Rectangle* other) override;
+    Milliseconds        getBlinkDuration() const;
 	const std::string*  getContent();
+    Rectangle&          getCursor();
+    int                 getCursorWidth() const;
     Rectangle&          getField();
     InputFilter         getFilter();
     int                 getLeftPadding() const;
+    TextInputListener   getListener() const;
     TextProperties*     getText() override;
     int                 getVerticalPadding() const;
     void                onAdd() override;
+    void                onRemove() override;
     void                onTick(int tickIndex) override;
     void                setBlinkDuration(Milliseconds duration);
     void                setColor(Color3D color) override;

@@ -34,34 +34,44 @@ sgf::Rectangle* sgf::VList::getMember(int index)
     return (index < 0 || index >= getCount()) ? nullptr : members.at(index);
 }
 
-void sgf::VList::insert(int index, Rectangle& newMember)
+#include <iostream>
+void sgf::VList::insert(int index, sgf::Rectangle* newMember)
 {
+    std::cout << "insert( " << index << ", " << &newMember << " )" << std::endl;
+    
     // Sum of heights of members with indices below `index` is the `newMember` offset
     float   offset  = 0.F;
     int     mi      = 0;
     for(; mi < index; mi++)
+    {
+        std::cout << "getMember( " << mi << " ) -> " << getMember(mi)->getSize().x << std::endl;
         offset += getMember(mi)->getHeight();
+    }
     
     // New rectangle `newMember` is added to the list both visually and logically
-    newMember.setPosition({ getX(), getY() + offset });
-    newMember.setPriority(getPriority());
-    newMember.setVisible(getVisible());
-    members.insert(members.begin() + mi, &newMember);
+    newMember->setPosition({ getX(), getY() + offset });
+    newMember->setPriority(getPriority());
+    newMember->setVisible(getVisible());
+    members.insert(members.begin() + mi, newMember);
     mi++;
     
+    std::cout << "3\n";
     // Manage registering the new member in canvas
-    if(canvas == nullptr)   toAdd.push_back(&newMember);
-    else                    canvas->add(newMember);
+    if(canvas == nullptr)   toAdd.push_back(newMember);
+    else                    canvas->add(*newMember);
     
+    std::cout << "4\n";
     // Members with indices above `index` need to be moved by `newMember` height down
     for(; mi < getCount(); mi++)
     {
         Rectangle* currMember = getMember(mi);
-        currMember->setPosition({ getX(), currMember->getY() + newMember.getHeight() });
+        currMember->setPosition({ getX(), currMember->getY() + newMember->getHeight() });
     }
+    std::cout << "5\n";
     
     // Reach of the list is finally updated to fit new contents
     this->updateBounds();
+    std::cout << "6\n";
 }
 
 void sgf::VList::onAdd()
@@ -73,6 +83,15 @@ void sgf::VList::onAdd()
         canvas->add(**toAdd.begin());
         toAdd.erase(toAdd.begin());
     }
+}
+
+void sgf::VList::onRemove()
+{
+// Not checked
+    for(int mi = 0; mi < getCount(); mi++)
+        canvas->remove(*getMember(mi));
+    
+    members.clear();
 }
 
 void sgf::VList::remove(int index)
@@ -99,6 +118,13 @@ void sgf::VList::remove(int index)
     
     // List size needs an update
     this->updateBounds();
+}
+
+void sgf::VList::remove(sgf::Rectangle* target)
+{
+    for(int mi = 0; mi < getCount(); mi++)
+        if(getMember(mi) == target)
+            remove(mi);
 }
 
 void sgf::VList::setColor(sgf::Color3D color)

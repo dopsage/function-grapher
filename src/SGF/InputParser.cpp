@@ -68,7 +68,7 @@ sgf::InputParser& sgf::InputParser::setKeyboardReceiver(sgf::Rectangle* rectangl
     return *this;
 }
 
-sgf::InputParser& sgf::InputParser::setRectangleSource(sgf::RectangleVector* rectangles)
+sgf::InputParser& sgf::InputParser::setRectangleSource(std::deque<Rectangle*>* rectangles)
 {
     this->rectangles = rectangles;
     return *this;

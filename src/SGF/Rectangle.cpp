@@ -20,12 +20,30 @@ keyboardListener(nullptr),
                  
 }
 
+sgf::Rectangle::~Rectangle()
+{
+    
+}
+
 bool sgf::Rectangle::contains(sgf::Vector2D position) const
 {
     return position.x >= this->position.x &&
            position.y >= this->position.y &&
            position.x <= this->position.x + this->size.x &&
            position.y <= this->position.y + this->size.y;
+}
+
+void sgf::Rectangle::copy(sgf::Rectangle* other)
+{
+    setColor            (other->getColor());
+    setKeyboardListener (other->getKeyboardListener());
+    setMouseListener    (other->getMouseListener());
+    setMeta             (other->getMeta());
+    setPosition         (other->getPosition());
+    setPriority         (other->getPriority());
+    setSize             (other->getSize());
+    setText             (other->getText());  // BEAWARE: This does not create new properties struct!
+    setVisible          (other->getVisible());
 }
 
 sgf::Color3D sgf::Rectangle::getColor() const
@@ -48,9 +66,19 @@ int sgf::Rectangle::getID() const
     return this->id;
 }
 
+sgf::KeyboardListener sgf::Rectangle::getKeyboardListener() const
+{
+    return keyboardListener;
+}
+
 void* sgf::Rectangle::getMeta()
 {
     return this->meta;
+}
+
+sgf::MouseListener sgf::Rectangle::getMouseListener() const
+{
+    return mouseListener;
 }
 
 sgf::Vector2D sgf::Rectangle::getPosition() const
@@ -107,6 +135,11 @@ void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position)
 void sgf::Rectangle::onAdd()
 {
     // Not implemented by default
+}
+
+void sgf::Rectangle::onRemove()
+{
+    
 }
 
 void sgf::Rectangle::onTick(int tickIndex)
@@ -175,6 +208,8 @@ void sgf::Rectangle::setSize(sgf::Vector2D size)
 
 void sgf::Rectangle::setText(sgf::TextProperties* properties)
 {
+    if(properties == nullptr) return;
+    
     /* If this is first text-setting call, mark this rectangle as a one containing
      * a text - later canvas detects that DURING THE RECTANGLE ADDITION and assigns
      * it a dedicated SFML Text instance. Additionally whole text is refreshed by

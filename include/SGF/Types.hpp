@@ -4,8 +4,8 @@
 #ifndef _TYPES_HPP
 #define _TYPES_HPP
 
+#include <deque>
 #include <string>
-#include <vector>
 
 namespace sgf
 {
@@ -76,7 +76,7 @@ namespace sgf
         int width;
     };
     
-    typedef std::vector<Rectangle*> RectangleVector;
+    typedef std::deque<Rectangle*> RectangleDeque;
     typedef void (*ButtonListener)(int id, Canvas* canvas);
     typedef void (*KeyboardListener)(int data, int id, Canvas* canvas);
     typedef void (*MouseListener)(MouseEvent event, Vector2D position, int id, Canvas* canvas);

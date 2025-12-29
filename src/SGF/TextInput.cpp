@@ -86,6 +86,7 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 			break;
 		}
 	}
+    
 
     // Update text character sizes vector, basing on the text width change and cursor position
     int textWidthDelta = field->getText()->width - oldTextWidth;
@@ -202,9 +203,44 @@ sgf::TextInput::TextInput() :
     this->field.setMeta(this);
 }
 
+void sgf::TextInput::copy(sgf::Rectangle* other)
+{
+    sgf::Rectangle::copy(other);
+    
+// Assuming that developers are well slept ...
+    sgf::TextInput* tiOther = (sgf::TextInput*)other;
+    
+    cursor  .copy(&tiOther->getCursor());
+    field   .copy(&tiOther->getField());
+    field   .setMeta(this);  // If left this job for copy(), it would use the `other` instead of this!
+    
+    setBlinkDuration    (tiOther->getBlinkDuration());
+    setContent          (*tiOther->getContent());
+    setCursorWidth      (tiOther->getCursorWidth());
+    setFilter           (tiOther->getFilter());
+    setLeftPadding      (tiOther->getLeftPadding());
+    setListener         (tiOther->getListener());
+    setVerticalPadding  (tiOther->getVerticalPadding());
+}
+
+sgf::Milliseconds sgf::TextInput::getBlinkDuration() const
+{
+    return blinkDuration;
+}
+
 const std::string* sgf::TextInput::getContent()
 {
 	return &field.getText()->content;
+}
+
+sgf::Rectangle& sgf::TextInput::getCursor()
+{
+    return cursor;
+}
+
+int sgf::TextInput::getCursorWidth() const
+{
+    return cursor.getWidth();
 }
 
 sgf::Rectangle& sgf::TextInput::getField()
@@ -222,6 +258,11 @@ int sgf::TextInput::getLeftPadding() const
     return this->leftPad;
 }
 
+sgf::TextInputListener sgf::TextInput::getListener() const
+{
+    return listener;
+}
+
 sgf::TextProperties* sgf::TextInput::getText()
 {
     return nullptr;
@@ -237,6 +278,16 @@ void sgf::TextInput::onAdd()
     // Add other rectangle instances on canvas setting
     this->canvas->add(field);
     this->canvas->add(cursor);
+}
+
+void sgf::TextInput::onRemove()
+{
+    // Deselect before!
+    if(isSelected)
+        canvas->getInputParser().setKeyboardReceiver(nullptr);
+    
+    canvas->remove(field);
+    canvas->remove(cursor);
 }
 
 void sgf::TextInput::onTick(int tickIndex)
@@ -258,12 +309,6 @@ void sgf::TextInput::setBlinkDuration(Milliseconds duration)
 void sgf::TextInput::setColor(sgf::Color3D color)
 {
     sgf::Rectangle::setColor(color);
-    
-    // Field color is an inverse of the background's
-	this->field.setColor({ (sgf::Byte)(255 - color.r), (sgf::Byte)(255 - color.g), (sgf::Byte)(255 - color.b) });
-    
-    // Cursor color is the background's
-    this->cursor.setColor(color);
 }
 
 void sgf::TextInput::setContent(const std::string& content)

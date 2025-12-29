@@ -16,7 +16,7 @@ void sgf::Button::onMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, in
 	else if(event == sgf::MouseEvent::UP && button->isMouseDown)
 	{
 		button->isMouseDown = false;
-        if(button->contains(position))
+        if(button->buttonListener != nullptr && button->contains(position))
             button->buttonListener(id, canvas);
 	}
 }
@@ -29,8 +29,22 @@ sgf::Rectangle::Rectangle(),
 	this->setMouseListener(sgf::Button::onMouseEvent);
 }
 
-sgf::Button& sgf::Button::setButtonListener(sgf::ButtonListener callback)
+void sgf::Button::copy(sgf::Rectangle* other)
+{
+    sgf::Rectangle::copy(other);
+    
+// Assuming that developers are well slept ...
+    sgf::Button* bOther = (sgf::Button*)other;
+    
+    setButtonListener(bOther->getButtonListener());
+}
+
+sgf::ButtonListener sgf::Button::getButtonListener() const
+{
+    return buttonListener;
+}
+
+void sgf::Button::setButtonListener(sgf::ButtonListener callback)
 {
     this->buttonListener = callback;
-    return *this;
 }

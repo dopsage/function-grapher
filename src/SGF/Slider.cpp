@@ -85,7 +85,7 @@ void sgf::Slider::setPosition(sgf::Vector2D position)
 		handle.getY() - getY() + position.y,
 	});
     
-	Rectangle::setPosition(position);
+	sgf::Rectangle::setPosition(position);
 }
 
 void sgf::Slider::setPriority(int priority)

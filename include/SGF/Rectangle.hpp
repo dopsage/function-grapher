@@ -38,13 +38,16 @@ protected:
 
 public:
 	Rectangle();
-	virtual ~Rectangle() = default;
+	virtual ~Rectangle();
     bool                    contains(Vector2D position) const;
+    virtual void            copy(Rectangle* other);
 	virtual Color3D	        getColor() const;
     bool                    getContainsText() const;
     float                   getHeight() const;
     int                     getID() const;
+    KeyboardListener        getKeyboardListener() const;
     void*                   getMeta();
+    MouseListener           getMouseListener() const;
 	virtual Vector2D        getPosition() const;
 	int 	 		        getPriority() const;
 	virtual Vector2D        getSize() const;
@@ -59,6 +62,7 @@ public:
     void                    onMouseInput(MouseEvent event, Vector2D position);
     
     virtual void            onAdd();
+    virtual void            onRemove();
     virtual void            onTick(int tickIndex);
 	void 			        updateText();
     virtual void            setColor(Color3D color);

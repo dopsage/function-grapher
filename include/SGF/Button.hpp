@@ -25,7 +25,9 @@ private:
 
 public:
 	Button();
-    Button& setButtonListener(ButtonListener callback);
+    void            copy(Rectangle* other) override;
+    ButtonListener  getButtonListener() const;
+    void            setButtonListener(ButtonListener callback);
 };
 
 }

@@ -125,7 +125,7 @@ int sgf::Canvas::getTickIndex() const
     return tickIndex;
 }
 
-const char* sgf::Canvas::getTitle() const
+const std::string& sgf::Canvas::getTitle() const
 {
     return this->title;
 }
@@ -152,12 +152,19 @@ void sgf::Canvas::kill()
 
 void sgf::Canvas::remove(Rectangle& rect)
 {
+    rect.onRemove();
+    
+    ///////////////////////////////////////////////////////
     if(rect.containsText)
         this->texts.erase(texts.begin() + rect.id);
     
     this->rectCount--;
     
     this->rectangles.erase(rectangles.begin() + rect.id);
+    
+    // Update IDs of all rectangles that were moved to left due to the vector size change
+    for(int i = rect.id; i < rectCount; i++)
+        getRectangle(i)->id--;
 }
 
 void sgf::Canvas::setPosition(sgf::Vector2D position)
@@ -178,7 +185,7 @@ void sgf::Canvas::setTickDuration(Milliseconds duration)
     this->tickDuration = duration;
 }
 
-void sgf::Canvas::setTitle(const char* title)
+void sgf::Canvas::setTitle(const std::string& title)
 {
     this->title = title;
     this->sfmlWindow.setTitle(sf::String(title));

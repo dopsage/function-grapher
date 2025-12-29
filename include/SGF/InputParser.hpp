@@ -17,17 +17,17 @@ namespace sgf
 class InputParser final
 {
 private:
-    Rectangle*       getHoveredRectangle(const Vector2D& position) const;
-    Rectangle*       keyboardReceiver;
-    Rectangle*       mouseReceiver;
-    RectangleVector* rectangles;
+    Rectangle*      getHoveredRectangle(const Vector2D& position) const;
+    Rectangle*      keyboardReceiver;
+    Rectangle*      mouseReceiver;
+    RectangleDeque* rectangles;
 
 public:
     InputParser();
     bool         isKeyboardFree() const;
     void         parseSfmlEvent(const sf::Event& event);
     InputParser& setKeyboardReceiver(Rectangle* rectangle);
-    InputParser& setRectangleSource(RectangleVector* rectangles);
+    InputParser& setRectangleSource(std::deque<Rectangle*>* rectangles);
 };
 
 }

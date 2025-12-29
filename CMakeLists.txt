@@ -21,6 +21,7 @@ add_executable(
     src/SGF/Slider.cpp
     src/SGF/TextInput.cpp
     src/SGF/VList.cpp
+    src/FunctionEntry.cpp
 )
 
 # Copy resources next to the executable so it can use them

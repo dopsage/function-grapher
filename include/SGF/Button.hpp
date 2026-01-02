@@ -17,17 +17,17 @@ class Button final : public Rectangle
 {
 private:
     bool        isMouseDown;
-	static void onMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
+	static void onButtonMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
     
     /* The callback is invoked when the button receives mouse up event while the
      * mouse is in the buttons rectangular area. */
-    ButtonListener buttonListener;
+    ButtonListener listener;
 
 public:
 	Button();
-    void            copy(Rectangle* other) override;
-    ButtonListener  getButtonListener() const;
-    void            setButtonListener(ButtonListener callback);
+    void            copy(Rectangle* other)  override;
+    ButtonListener  getListener()           const;
+    void            setListener(ButtonListener callback);
 };
 
 }

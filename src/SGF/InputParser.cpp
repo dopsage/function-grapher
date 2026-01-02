@@ -1,29 +1,33 @@
 
 #include "SGF/InputParser.hpp"
 
-sgf::Rectangle* sgf::InputParser::getHoveredRectangle(const sgf::Vector2D& position) const
-{
-    sgf::Rectangle* receiver = nullptr;
-    for(sgf::Rectangle* rect : *rectangles)
-        if(receiver == nullptr || (rect->getVisible() && rect->contains(position) && rect->getPriority() >= receiver->getPriority()))
-            receiver = rect;
+using namespace sgf;
 
-    return receiver;
+Rectangle* InputParser::getHoveredRectanglePtr(Vector2D position)
+{
+    Rectangle* hovered = nullptr;
+    for(Rectangle* r : *rectanglesSourcePtr)
+        if(  r->isVisible()         &&
+             r->contains(position)  &&
+            (hovered == nullptr || r->getPriority() >= hovered->getPriority()))
+             hovered = r;
+
+    return hovered;
 }
 
-sgf::InputParser::InputParser() :
-keyboardReceiver(nullptr),
-   mouseReceiver(nullptr)
+InputParser::   InputParser() :
+                mouseReceiverPtr(nullptr)
 {
-    
+    setKeyboardReceiverPtr(nullptr);
+    setRectanglesSourcePtr(nullptr);
 }
 
-bool sgf::InputParser::isKeyboardFree() const
+bool InputParser::isKeyboardFree() const
 {
-    return keyboardReceiver == nullptr;
+    return (keyboardReceiverPtr == nullptr);
 }
 
-void sgf::InputParser::parseSfmlEvent(const sf::Event& event)
+void InputParser::parseSfmlEvent(const sf::Event& event)
 {
     switch(event.type)
     {
@@ -33,43 +37,68 @@ void sgf::InputParser::parseSfmlEvent(const sf::Event& event)
 		 * character code. Thus negatives shall be used for control, and positives for keys. */
 		case sf::Event::KeyPressed:
         case sf::Event::TextEntered:
-			if(keyboardReceiver != nullptr)
-				keyboardReceiver->onKeyboardInput(event.type == sf::Event::KeyPressed ? (-1 * (int)event.key.code) : (event.text.unicode));
-			break;
-			
+        {
+			if(keyboardReceiverPtr != nullptr)
+				keyboardReceiverPtr->onKeyboardInput(event.type == sf::Event::KeyPressed ?
+                (-1 * (int)event.key.code) : (event.text.unicode));
+            break;
+        }
+        
         /* These allows an event receiver to capture the mouse; so while left mouse
          * button is held, events still arrive to the receiver despite the mouse
          * not hovering it. */
         case sf::Event::MouseButtonPressed:
+        {
             if(event.mouseButton.button == sf::Mouse::Button::Left)
             {
-                sgf::Vector2D position = { (float)event.mouseButton.x, (float)event.mouseButton.y };
-                mouseReceiver = getHoveredRectangle(position);
-                mouseReceiver->onMouseInput(sgf::MouseEvent::DOWN, position);
+                Vector2D position   = {(float)event.mouseButton.x, (float)event.mouseButton.y};
+                mouseReceiverPtr    = getHoveredRectanglePtr(position);
+                
+                if(mouseReceiverPtr != nullptr)
+                    mouseReceiverPtr->onMouseInput(MouseEvent::DOWN, position);
             }
             break;
+        }
         case sf::Event::MouseMoved:
-            if(mouseReceiver != nullptr)
-                mouseReceiver->onMouseInput(sgf::MouseEvent::MOVE, { (float)event.mouseMove.x, (float)event.mouseMove.y });
-            break;
-        case sf::Event::MouseButtonReleased:
-            if(mouseReceiver != nullptr)
+        {
+            if(mouseReceiverPtr == nullptr)
             {
-                mouseReceiver->onMouseInput(sgf::MouseEvent::UP, { (float)event.mouseButton.x, (float)event.mouseButton.y });
-                mouseReceiver = nullptr;
+                Vector2D position       = {(float)event.mouseMove.x, (float)event.mouseMove.y};
+                Rectangle* receiverPtr  = getHoveredRectanglePtr(position);
+                
+                if(receiverPtr != nullptr)
+                    receiverPtr->onMouseInput(MouseEvent::MOVE, position);
+            }
+            else
+            {
+                mouseReceiverPtr->onMouseInput(MouseEvent::MOVE, {
+                    (float)event.mouseMove.x,
+                    (float)event.mouseMove.y
+                });
             }
             break;
+        }
+        case sf::Event::MouseButtonReleased:
+        {
+            if(event.mouseButton.button == sf::Mouse::Button::Left && mouseReceiverPtr != nullptr)
+            {
+                mouseReceiverPtr->onMouseInput(MouseEvent::UP, {
+                    (float)event.mouseButton.x,
+                    (float)event.mouseButton.y
+                });
+                mouseReceiverPtr = nullptr;
+            }
+            break;
+        }
     }
 }
 
-sgf::InputParser& sgf::InputParser::setKeyboardReceiver(sgf::Rectangle* rectangle)
+void InputParser::setKeyboardReceiverPtr(Rectangle* receiverPtr)
 {
-    this->keyboardReceiver = rectangle;
-    return *this;
+    keyboardReceiverPtr = receiverPtr;
 }
 
-sgf::InputParser& sgf::InputParser::setRectangleSource(std::deque<Rectangle*>* rectangles)
+void InputParser::setRectanglesSourcePtr(std::vector<Rectangle*>* sourcePtr)
 {
-    this->rectangles = rectangles;
-    return *this;
+    rectanglesSourcePtr = sourcePtr;
 }

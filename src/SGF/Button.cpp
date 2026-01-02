@@ -1,50 +1,53 @@
 
 #include "SGF/Button.hpp"
 
-void sgf::Button::onMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Canvas* canvas)
+using namespace sgf;
+
+void Button::onButtonMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr)
 {
-	/* It is known, that the listening rectangle is actually a button, therefore
-     * pointer cast is a safe way of accessing the instance. */
-	sgf::Button* button = (sgf::Button*)canvas->getRectangle(id);
-	
+	Button* b = (Button*)canvasPtr->getRectanglePtr(rectangleId);
+    
     /* Button feeds the listener only when both down and up mouse events occurred
      * in its rectangular bounds. */
-	if(event == sgf::MouseEvent::DOWN)
+	if(event == MouseEvent::DOWN)
 	{
-		button->isMouseDown = true;
+		b->isMouseDown = true;
 	}
-	else if(event == sgf::MouseEvent::UP && button->isMouseDown)
+	else if(event == MouseEvent::UP && b->isMouseDown)
 	{
-		button->isMouseDown = false;
-        if(button->buttonListener != nullptr && button->contains(position))
-            button->buttonListener(id, canvas);
+		b->isMouseDown = false;
+        if(b->listener != nullptr && b->contains(position))
+            b->listener(rectangleId, canvasPtr);
 	}
 }
 
-sgf::Button::Button() :
-sgf::Rectangle::Rectangle(),
-	          isMouseDown(false),
-           buttonListener(nullptr)
+Button::Button() :
+        Rectangle::Rectangle(),
+        isMouseDown(false)
 {
-	this->setMouseListener(sgf::Button::onMouseEvent);
-}
-
-void sgf::Button::copy(sgf::Rectangle* other)
-{
-    sgf::Rectangle::copy(other);
+    setListener(nullptr);
     
-// Assuming that developers are well slept ...
-    sgf::Button* bOther = (sgf::Button*)other;
+	setMouseListener(Button::onButtonMouseEvent);
+}
+
+void Button::copy(Rectangle* other)
+{
+    Rectangle::copy(other);
     
-    setButtonListener(bOther->getButtonListener());
+    // Rectangle::copy resets the mouse listener! it needs to return for the button
+    setMouseListener(Button::onButtonMouseEvent);
+    
+    // Assuming copying target is a button (it must be)
+    Button* b = (Button*)other;
+    setListener(b->getListener());
 }
 
-sgf::ButtonListener sgf::Button::getButtonListener() const
+ButtonListener Button::getListener() const
 {
-    return buttonListener;
+    return listener;
 }
 
-void sgf::Button::setButtonListener(sgf::ButtonListener callback)
+void Button::setListener(ButtonListener callback)
 {
-    this->buttonListener = callback;
+    listener = callback;
 }

@@ -3,7 +3,7 @@
 
 void FunctionEntry::onButtonEvent(int id, sgf::Canvas* canvas)
 {
-    FunctionEntry* feEntry = (FunctionEntry*)canvas->getRectangle(id)->getMeta();
+    FunctionEntry* feEntry = (FunctionEntry*)canvas->getRectangle(id)->getMetaPtr();
     
     if(feEntry->parentList != nullptr)
     {
@@ -18,7 +18,7 @@ FunctionEntry::FunctionEntry() :
                   parentList(nullptr)
 {
     button.setButtonListener(FunctionEntry::onButtonEvent);
-    button.setMeta(this);
+    button.setMetaPtr(this);
 }
 
 void FunctionEntry::copy(sgf::Rectangle* other)
@@ -29,7 +29,7 @@ void FunctionEntry::copy(sgf::Rectangle* other)
     FunctionEntry* feOther = (FunctionEntry*)other;
     
     button  .copy(&feOther->getButton());
-    button  .setMeta(this); // This is necessary!
+    button  .setMetaPtr(this); // This is necessary!
     input   .copy(&feOther->getTextInput());
     
     setParentList(&feOther->getParentList());
@@ -67,14 +67,14 @@ bool FunctionEntry::isValid() const
 
 void FunctionEntry::onAdd()
 {
-    canvas->add(button);
-    canvas->add(input);
+    getCanvasPtr()->add(button);
+    getCanvasPtr()->add(input);
 }
 
 void FunctionEntry::onRemove()
 {
-    canvas->remove(button);
-    canvas->remove(input);
+    getCanvasPtr()->remove(button);
+    getCanvasPtr()->remove(input);
 }
 
 void FunctionEntry::setColor(sgf::Color3D color)

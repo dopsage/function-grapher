@@ -10,78 +10,71 @@
 namespace sgf
 {
 
-/* Literal SFML drawable rectangle wrapper, that introduces features of a primitive
- * interactive rectangular area. */
+/* Literal SFML drawable rectangle (sf::RectangleShape) wrapper, that introduces features
+ * of a primitive interactive rectangular area. Rectangle may declare use of text,
+ * in such case canvas associates SFML drawable text (sf::Text) with the rectangle.
+ * The text is controlled by playing with text properties instance that every rectangle
+ * instance contains and allows to alter (see Types module). */
 class Rectangle
 {
-    // Allow canvas to access `sfmlRect` in drawing purposes, we trust it on this
+    // Allow canvas to access `sfmlRect` in drawing purposes, this is just a simple trust
     friend class Canvas;
 
 private:
-	Color3D	           color;
-    bool               containsText;
-    int                id;
-    KeyboardListener   keyboardListener;
-    MouseListener      mouseListener;
-    void*              meta;
-    Vector2D 		   position;
-	int 			   priority;
-	TextProperties*    textProps;
-    bool               requestedText;
-	sf::RectangleShape sfmlRect;
-    sf::Text*          sfmlTextPtr;
-	Vector2D 		   size;
-    bool               visible;
-
-protected:
-    Canvas* canvas;
+    Canvas*             canvasPtr;
+	Color3D	            color;
+    int                 id;
+    KeyboardListener    keyboardListener;
+    MouseListener       mouseListener;
+    void*               metaPtr;
+    Vector2D 		    position;
+	int 			    priority;
+	sf::RectangleShape  sfmlRect;
+	Vector2D 		    size;
+	TextProperties*     textPtr;
+    bool                usingText;
+    bool                visible;
 
 public:
 	Rectangle();
 	virtual ~Rectangle();
     bool                    contains(Vector2D position) const;
     virtual void            copy(Rectangle* other);
-	virtual Color3D	        getColor() const;
-    bool                    getContainsText() const;
-    float                   getHeight() const;
-    int                     getID() const;
-    KeyboardListener        getKeyboardListener() const;
-    void*                   getMeta();
-    MouseListener           getMouseListener() const;
-	virtual Vector2D        getPosition() const;
-	int 	 		        getPriority() const;
-	virtual Vector2D        getSize() const;
-    virtual TextProperties* getText();
-    float                   getWidth() const;
-    virtual bool            getVisible() const;
-    float                   getX() const;
-    float                   getY() const;
+    Canvas*                 getCanvasPtr();
+	Color3D	                getColor()                  const;
+    float                   getHeight()                 const;
+    int                     getId()                     const;
+    KeyboardListener        getKeyboardListener()       const;
+    void*                   getMetaPtr();
+    MouseListener           getMouseListener()          const;
+    Vector2D                getPosition()               const;
+	int 	 		        getPriority()               const;
+	Vector2D                getSize()                   const;
+    TextProperties*         getText();
+    float                   getWidth()                  const;
+    float                   getX()                      const;
+    float                   getY()                      const;
+    bool                    isUsingText()               const;
+    bool                    isVisible()                 const;
     
-    // These two methods invoke keyboard and mouse listeners with given parameters 
+    // These two methods invoke keyboard and mouse listeners with given parameters
     void                    onKeyboardInput(int data);
     void                    onMouseInput(MouseEvent event, Vector2D position);
     
     virtual void            onAdd();
     virtual void            onRemove();
-    virtual void            onTick(int tickIndex);
-	void 			        updateText();
+    virtual void            onTick(int tickCount);
     virtual void            setColor(Color3D color);
     
-    // Rectangle can store only one callback method per device.
+    // Rectangle can store only one callback method per device, did not see reason for not doing so
     void                    setKeyboardListener(KeyboardListener callback);
     void                    setMouseListener(MouseListener callback);
     
-    void                    setMeta(void* meta);
+    void                    setMetaPtr(void* ptr);
     virtual void            setPosition(Vector2D position);
 	virtual void            setPriority(int priority);
 	virtual void            setSize(Vector2D size);
-    
-    /* This method provides a source of text data for this rectangle, which in return
-     * later (on calling canvas `add` with this rectangle as parameter) receives
-     * a dedicated SFML Text instance which can be customized through provided
-     * TextProperties instance. */
     virtual void            setText(TextProperties* properties);
-    
     virtual void            setVisible(bool visible);
 };
 

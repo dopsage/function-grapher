@@ -20,7 +20,7 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
 {
 	// Assume metadata of the field instance is set to the parenting text input instance
 	sgf::Rectangle* field = canvas->getRectangle(id);
-	sgf::TextInput* input = (sgf::TextInput*)field->getMeta();
+	sgf::TextInput* input = (sgf::TextInput*)field->getMetaPtr();
     
     int oldCursorIndex  = input->cursorIndex;
     int oldTextWidth    = field->getText()->width;
@@ -56,7 +56,7 @@ void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
             
             // Invoke the listener
             if(input->listener != nullptr)
-                input->listener(*input->getContent(), input->getID(), canvas);
+                input->listener(*input->getContent(), input->getId(), canvas);
             
 			break;
 		}
@@ -101,7 +101,7 @@ void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D posi
     // Clicking mechanic works is really similar to the one defined for Slider
     
     sgf::Rectangle* field = canvas->getRectangle(id);
-    sgf::TextInput* input = (sgf::TextInput*)field->getMeta();
+    sgf::TextInput* input = (sgf::TextInput*)field->getMetaPtr();
     
     if(event == sgf::MouseEvent::DOWN)
     {
@@ -160,7 +160,7 @@ void sgf::TextInput::updateCursor()
         setContent("");
         
         for(int i = 0; i < oldContent.size(); i++)
-            sgf::TextInput::onFieldKeyboardEvent((int)oldContent[i], field.getID(), canvas);
+            sgf::TextInput::onFieldKeyboardEvent((int)oldContent[i], field.getId(), getCanvasPtr());
         
         /* In the end, the method needs to call itself again in order to return
          * the cursor back to its original position, after re-inputting. */
@@ -200,7 +200,7 @@ sgf::TextInput::TextInput() :
      * metadata for sake of its callbacks set above. */
     this->setBlinkDuration(250);
     this->setCursorWidth(2);
-    this->field.setMeta(this);
+    this->field.setMetaPtr(this);
 }
 
 void sgf::TextInput::copy(sgf::Rectangle* other)
@@ -212,7 +212,7 @@ void sgf::TextInput::copy(sgf::Rectangle* other)
     
     cursor  .copy(&tiOther->getCursor());
     field   .copy(&tiOther->getField());
-    field   .setMeta(this);  // If left this job for copy(), it would use the `other` instead of this!
+    field   .setMetaPtr(this);  // If left this job for copy(), it would use the `other` instead of this!
     
     setBlinkDuration    (tiOther->getBlinkDuration());
     setContent          (*tiOther->getContent());
@@ -276,27 +276,27 @@ int sgf::TextInput::getVerticalPadding() const
 void sgf::TextInput::onAdd()
 {
     // Add other rectangle instances on canvas setting
-    this->canvas->add(field);
-    this->canvas->add(cursor);
+    this->getCanvasPtr()->add(field);
+    this->getCanvasPtr()->add(cursor);
 }
 
 void sgf::TextInput::onRemove()
 {
     // Deselect before!
     if(isSelected)
-        canvas->getInputParser().setKeyboardReceiver(nullptr);
+        getCanvasPtr()->getInputParser().setKeyboardReceiver(nullptr);
     
-    canvas->remove(field);
-    canvas->remove(cursor);
+    getCanvasPtr()->remove(field);
+    getCanvasPtr()->remove(cursor);
 }
 
 void sgf::TextInput::onTick(int tickIndex)
 {
     // Perform the cursor blinking
-    sgf::Milliseconds currTime = canvas->getElapsedTime();
+    sgf::Milliseconds currTime = getCanvasPtr()->getElapsedTime();
     if(isSelected && currTime - lastBlinkTime >= blinkDuration)
     {
-        cursor.setVisible(!cursor.getVisible());
+        cursor.setVisible(!cursor.isVisible());
         lastBlinkTime = currTime;
     }
 }
@@ -371,7 +371,7 @@ void sgf::TextInput::setSize(sgf::Vector2D size)
     this->field.setSize({ getWidth() - this->leftPad, getHeight() - 2 * this->vertPad });
     
     // Update size of the field text, if it is existent
-    if(this->field.getContainsText())
+    if(this->field.isUsingText())
     {
         field.getText()->size = field.getHeight();
         field.updateText();

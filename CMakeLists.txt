@@ -17,11 +17,11 @@ add_executable(
     src/SGF/Canvas.cpp
     src/SGF/InputParser.cpp
     src/SGF/Rectangle.cpp
-    src/SGF/ScrollView.cpp
-    src/SGF/Slider.cpp
-    src/SGF/TextInput.cpp
-    src/SGF/VList.cpp
-    src/FunctionEntry.cpp
+    #src/SGF/ScrollView.cpp
+    #src/SGF/Slider.cpp
+    #src/SGF/TextInput.cpp
+    #src/SGF/VList.cpp
+    #src/FunctionEntry.cpp
 )
 
 # Copy resources next to the executable so it can use them

@@ -1,11 +1,13 @@
 
+#include <deque>
 #include <iostream>
+#include "SGF/Button.hpp"
 #include "SGF/Canvas.hpp"
-#include "SGF/Rectangle.hpp"
-#include "SGF/ScrollView.hpp"
-#include "SGF/TextInput.hpp"
+//#include "SGF/Rectangle.hpp"
+//#include "SGF/ScrollView.hpp"
+//#include "SGF/TextInput.hpp"
 #include "SGF/Types.hpp"
-#include "FunctionEntry.hpp"
+//#include "FunctionEntry.hpp"
 
 // Colors
 static const sgf::Color3D   C_BLACK ({ 0, 0, 0 });
@@ -36,18 +38,26 @@ static void onResetGraphButtonEvent (int id, sgf::Canvas* canvas);
 static void onZoomDownButtonEvent   (int id, sgf::Canvas* canvas);
 static void onZoomUpButtonEvent     (int id, sgf::Canvas* canvas);
 
-static std::deque<FunctionEntry>        feCopies;   // Deque preserves addresses!
-static FunctionEntry                    fePrefab;
-static std::deque<sgf::TextProperties>  feTProps;   // Deque preserves addresses!
+//static std::deque<FunctionEntry>        feCopies;   // Deque preserves addresses!
+//static FunctionEntry                    fePrefab;
+//static std::deque<sgf::TextProperties>  feTProps;   // Deque preserves addresses!
 static bool                             run;
 
+static void textinputlistener(const std::string& content, int id, sgf::Canvas* canvas)
+{
+    std::cout << id << ": " << content << std::endl;
+}
 int main()
 {
     /********** CONFIGURE INSTANCES **********/
     
-    sgf::TextProperties mousePositionText   = { C_BLACK, "(100, 100)", 16 };
-    sgf::TextProperties zoomText            = { C_BLACK, "x1.0", 16 };
+                                            //  color    content        refreshFlag size    width
+    sgf::TextProperties mousePositionText   = { C_BLACK, "(100, 100)",  0,          16,     0 };
+    sgf::TextProperties zoomText            = { C_BLACK, "x1.0",        0,          16,     0 };
     
+/*
+
+
 // TODO: make setColor of every rect make its subrects the same color
     sgf::Button     bAddEntry;
     sgf::Button     bResetGraph;
@@ -64,7 +74,7 @@ int main()
     // [BUTTON] ADD ENTRY
     bAddEntry.setButtonListener(onAddEntryButtonEvent);
     bAddEntry.setColor(C_BLUE);
-    bAddEntry.setMeta(&svFunctions);    // Scroll view gets updated with entries on button click
+    bAddEntry.setMetaPtr(&svFunctions);    // Scroll view gets updated with entries on button click
     bAddEntry.setPosition({ 0, 0 });    // Automatic (svFunctions)
     bAddEntry.setPriority(0);           // Automatic (svFunctions)
     bAddEntry.setSize({
@@ -77,7 +87,7 @@ int main()
     // [BUTTON] RESET GRAPH
     bResetGraph.setButtonListener(onResetGraphButtonEvent);
     bResetGraph.setColor(C_BLUE);
-    bResetGraph.setMeta(nullptr);
+    bResetGraph.setMetaPtr(nullptr);
     bResetGraph.setPosition({ 0, 0 });  // Automatic (vlToolbarButtons)
     bResetGraph.setPriority(0);         // Automatic (vlToolbarButtons)
     bResetGraph.setSize(V_TOOLBAR_BUTTON_SIZE);
@@ -107,7 +117,7 @@ int main()
     
     // [RECTANGLE] GRAPH BACKGROUND
     rGraphBackground.setColor(C_WHITE);
-    rGraphBackground.setMeta(nullptr);
+    rGraphBackground.setMetaPtr(nullptr);
     rGraphBackground.setPosition({ F_SCROLL_VIEW_WIDTH, 0 });
     rGraphBackground.setPriority(0); 
     rGraphBackground.setSize({
@@ -117,7 +127,7 @@ int main()
     
     // [RECTANGLE] STATUS BACKGROUND
     rStatusBackground.setColor(C_GRAY);
-    rStatusBackground.setMeta(nullptr);
+    rStatusBackground.setMetaPtr(nullptr);
     rStatusBackground.setPosition({
         0,
         V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT
@@ -130,7 +140,7 @@ int main()
     
     // [TEXT] MOUSE POSITION
     tMousePosition.setColor(C_GRAY);
-    tMousePosition.setMeta(nullptr);
+    tMousePosition.setMetaPtr(nullptr);
     tMousePosition.setPosition({
         V_CANVAS_SIZE.x - F_STATUS_ZOOM_INFO_WIDTH - F_STATUS_MOUSE_INFO_WIDTH,
         V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT
@@ -152,7 +162,7 @@ int main()
 // TODO: Make setText calls direct, so there is no need to dig deep (like below to getField).
     fePrefab.setColor(C_GREEN);
     fePrefab.setParentList(&svFunctions.getList());
-    fePrefab.setMeta(nullptr);
+    fePrefab.setMetaPtr(nullptr);
     fePrefab.setPosition({ 0, 0 });     // Automatic (svFunctions.getList)
     fePrefab.setPriority(0);            // Automatic (svFunctions.getList)
     fePrefab.setSize(bAddEntry.getSize());
@@ -167,12 +177,14 @@ int main()
     fePrefab.getTextInput().setVerticalPadding(V_INPUT_PADDING.y);
     fePrefab.getTextInput().getField().setText(nullptr);    // Prefab variable, needs setting
     fePrefab.getTextInput().getCursor().setColor(C_BLACK);
-    fePrefab.getTextInput().getField().setColor(C_BLUE);
+    fePrefab.getTextInput().getField().setColor(C_GREEN);
+    
+    fePrefab.getTextInput().setListener(textinputlistener);
     
     // [SCROLL VIEW] FUNCTIONS
 // TODO: add getSlider for customization
     svFunctions.setColor(C_RED);
-    svFunctions.setMeta(nullptr);
+    svFunctions.setMetaPtr(nullptr);
     svFunctions.setPosition({ 0, 0 });
     svFunctions.setPriority(1);
     svFunctions.setSize({
@@ -200,6 +212,7 @@ int main()
     
     /********** RUN THE FUNCTION GRAPHER APPLICATION **********/    
     
+    /*
     cCanvas.add(bAddEntry);
     cCanvas.add(rGraphBackground);
     cCanvas.add(rStatusBackground);
@@ -207,16 +220,47 @@ int main()
     cCanvas.add(tZoom);
     cCanvas.add(svFunctions);
     cCanvas.add(vlToolbarButtons);
+    */
+    
+    sgf::Canvas canvas;
+    canvas.setDrawingRate(4);
+    canvas.setPosition({ 1920 - V_CANVAS_SIZE.x, 1080 - V_CANVAS_SIZE.y });    // For testing
+    canvas.setSize(V_CANVAS_SIZE);
+    canvas.setTitle(STR_CANVAS_TITLE);
+    
+    sgf::Button x;
+    x.setListener(onResetGraphButtonEvent);
+    x.setColor(C_BLUE);
+    x.setMetaPtr(nullptr);    // Scroll view gets updated with entries on button click
+    x.setPosition({ 100, 100 });    // Automatic (svFunctions)
+    x.setPriority(2);           // Automatic (svFunctions)
+    x.setSize({ 200, 200});
+    x.setText(nullptr);
+    x.setVisible(true);
+    
+    sgf::Button y;
+    y.copy(&x);
+    y.setPriority(1);
+    y.setColor(C_RED);
+    y.setPosition({y.getX() + 100, y.getY()});
+    
+    sgf::Button z;
+    z.copy(&y);
+    z.setPriority(0);
+    z.setColor(C_GREEN);
+    z.setPosition({y.getX() + 100, y.getY()});
+    
+    canvas.add(&x);
+    canvas.add(&y);
+    canvas.add(&z);
     
     run = true;
-    while(cCanvas.alive())
+    while(canvas.isActive())
     {
-        if(cCanvas.tick())
-        {
-            if(!run) cCanvas.kill();
-            
-            // Do updates ...
-        }
+        if(!run)    canvas.stop();
+        else        canvas.tick();
+    
+        // Do updates ...
     }
     
     return 0;
@@ -224,17 +268,19 @@ int main()
 
 static void onAddEntryButtonEvent(int id, sgf::Canvas* canvas)
 {
-    sgf::ScrollView* svFunctions = (sgf::ScrollView*)canvas->getRectangle(id)->getMeta();
+    /*
+    sgf::ScrollView* svFunctions = (sgf::ScrollView*)canvas->getRectanglePtr(id)->getMetaPtr();
     std::cout << "Add entry " << svFunctions->getList().getCount() << std::endl;
     
     /* Add a new function entry instance together with text properties that are bound
-     * to it. The entry is a copy of the function entry prefab. */
+     * to it. The entry is a copy of the function entry prefab. /
     feCopies.push_back(FunctionEntry());
     feTProps.push_back({ C_BLACK, "", 16 });
     feCopies.back().copy(&fePrefab);
     feCopies.back().getTextInput().getField().setText(&feTProps.back());
     
     svFunctions->getList().insert(svFunctions->getList().getCount() - 1, &feCopies.back());
+    */
 }
 
 static void onResetGraphButtonEvent(int id, sgf::Canvas* canvas)

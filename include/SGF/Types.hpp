@@ -4,7 +4,6 @@
 #ifndef _TYPES_HPP
 #define _TYPES_HPP
 
-#include <deque>
 #include <string>
 
 namespace sgf
@@ -26,7 +25,7 @@ namespace sgf
     {
         // NOTICE: Ranges are defined in unicode
         
-        BYTE,   // Visible characters in the first unicode table byte
+        BYTE,   // Visible characters in the first byte of unicode table
         MATH    // Simple math expressions
     };
     const RangeVector IF_BYTE =
@@ -68,20 +67,20 @@ namespace sgf
     struct TextProperties
     {
         // Variable
-        Color3D color;
-        std::string content;
-        unsigned int size;
+        Color3D     color;          // Uniform color
+        std::string content;        // Contained text data
+        bool        refreshFlag;    // If set, canvas updates the SFML text with the properties and resets the flag
+        int         size;           // Character size in pixels
         
         // Read-only
-        int width;
+        int         width;          // Width of the text content in pixels
     };
     
-    typedef std::deque<Rectangle*> RectangleDeque;
-    typedef void (*ButtonListener)(int id, Canvas* canvas);
-    typedef void (*KeyboardListener)(int data, int id, Canvas* canvas);
-    typedef void (*MouseListener)(MouseEvent event, Vector2D position, int id, Canvas* canvas);
-    typedef void (*SliderListener)(float value, int id, Canvas* canvas);
-    typedef void (*TextInputListener)(const std::string& content, int id, sgf::Canvas* canvas);
+    typedef void (*ButtonListener)      (int rectangleId, Canvas* canvasPtr);
+    typedef void (*KeyboardListener)    (int data, int rectangleId, Canvas* canvasPtr);
+    typedef void (*MouseListener)       (MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr);
+    typedef void (*SliderListener)      (float value, int rectangleId, Canvas* canvasPtr);
+    typedef void (*TextInputListener)   (std::string content, int rectangleId, sgf::Canvas* canvasPtr);
 }
 
 #endif

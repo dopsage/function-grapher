@@ -1,11 +1,10 @@
 
 #include "SGF/ScrollView.hpp"
 
-#include<iostream>
 void sgf::ScrollView::onSliderEvent(float value, int id, Canvas* canvas)
 {
     sgf::Slider*        slider      = (sgf::Slider*)canvas->getRectangle(id);
-    sgf::ScrollView*    scrollView  = (sgf::ScrollView*)slider->getMeta();
+    sgf::ScrollView*    scrollView  = (sgf::ScrollView*)slider->getMetaPtr();
 
 // TODO: Make handle resizement automatic according to list height?
     float offset = scrollView->getHeight() - scrollView->list.getHeight();
@@ -24,7 +23,7 @@ sgf::ScrollView::ScrollView() :
     /* Adjust slider to defaults, and make the scroll view instance its metadata
      * for sake of managing this instance's fields "remotely" from callback. */
     this->setSliderWidth(25.F);
-    this->slider.setMeta(this);
+    this->slider.setMetaPtr(this);
 }
 
 sgf::VList& sgf::ScrollView::getList()
@@ -35,8 +34,8 @@ sgf::VList& sgf::ScrollView::getList()
 void sgf::ScrollView::onAdd()
 {
     // Add other rectangle instances on canvas setting
-    this->canvas->add(list);
-    this->canvas->add(slider);
+    this->getCanvasPtr()->add(list);
+    this->getCanvasPtr()->add(slider);
 }
 
 void sgf::ScrollView::setColor(sgf::Color3D color)

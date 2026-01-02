@@ -1,7 +1,6 @@
 
 #include "SGF/Slider.hpp"
 
-#include<iostream>
 void sgf::Slider::onHandleMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Canvas* canvas)
 {
 	/* It is known, that the listening rectangle is actually the slider handle,
@@ -10,7 +9,7 @@ void sgf::Slider::onHandleMouseEvent(sgf::MouseEvent event, sgf::Vector2D positi
     
     /* After all, it is also guaranteed that metadata of the handle instance obtained 
      * above is the controlling slider instance, therefore can perform pointer cast. */
-	sgf::Slider* slider = (sgf::Slider*)handle->getMeta();
+	sgf::Slider* slider = (sgf::Slider*)handle->getMetaPtr();
 	
 	if(event == sgf::MouseEvent::DOWN)
 	{
@@ -34,7 +33,7 @@ void sgf::Slider::onHandleMouseEvent(sgf::MouseEvent event, sgf::Vector2D positi
          * It is possible to access private members since we are still in a member
          * (this static function) of a class to which these private fields belong. */
         if(slider->sliderListener != nullptr)
-            slider->sliderListener(slider->value, slider->getID(), canvas);
+            slider->sliderListener(slider->value, slider->getId(), canvas);
 	}
 	else if(event == sgf::MouseEvent::UP)
 	{
@@ -55,7 +54,7 @@ sgf::Rectangle::Rectangle(),
     /* Adjust the handle to defaults, and make the slider instance its metadata
      * for sake of handle callback set above. */
     this->setHandleHeight(50.F);
-    this->handle.setMeta(this);
+    this->handle.setMetaPtr(this);
 }
 
 float sgf::Slider::getValue() const
@@ -66,7 +65,7 @@ float sgf::Slider::getValue() const
 void sgf::Slider::onAdd()
 {
     // Add handle rectangle instance on canvas setting
-    this->canvas->add(handle);
+    this->getCanvasPtr()->add(handle);
 }
 
 void sgf::Slider::setColor(Color3D color)

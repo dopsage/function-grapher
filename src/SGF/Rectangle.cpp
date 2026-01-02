@@ -1,224 +1,218 @@
 
 #include "SGF/Rectangle.hpp"
 
-sgf::Rectangle::Rectangle() :
-          canvas(nullptr),
-           color({0, 0, 0}),
-    containsText(false),
-keyboardListener(nullptr),
-   mouseListener(nullptr),
-            meta(nullptr),
-        position({0.F, 0.F}),
-        priority(0),
-       textProps(nullptr),
-   requestedText(false),
-        sfmlRect(),
-     sfmlTextPtr(nullptr),
-            size({0.F, 0.F}),
-         visible(true)
+using namespace sgf;
+
+Rectangle:: Rectangle() :
+            canvasPtr(nullptr),
+            id(-1),
+            sfmlRect(),
+            textPtr(nullptr),
+            usingText(false)
 {
-                 
+    setColor({0,0,0});              // color
+    setKeyboardListener(nullptr);   // keyboardListener
+    setMouseListener(nullptr);      // mouseListener
+    setMetaPtr(nullptr);            // metaPtr
+    setPosition({0.0f,0.0f});       // position
+    setPriority(0);                 // priority
+    setSize({0.0f,0.0f});           // size
+    setText(nullptr);               // textPtr
+    setVisible(true);               // visible
 }
 
-sgf::Rectangle::~Rectangle()
+Rectangle::~Rectangle()
 {
-    
+    // Not implemented by default
 }
 
-bool sgf::Rectangle::contains(sgf::Vector2D position) const
+bool Rectangle::contains(Vector2D position) const
 {
-    return position.x >= this->position.x &&
-           position.y >= this->position.y &&
-           position.x <= this->position.x + this->size.x &&
+    return position.x >= this->position.x                   &&
+           position.y >= this->position.y                   &&
+           position.x <= this->position.x + this->size.x    &&
            position.y <= this->position.y + this->size.y;
 }
 
-void sgf::Rectangle::copy(sgf::Rectangle* other)
+void Rectangle::copy(Rectangle* other)
 {
     setColor            (other->getColor());
     setKeyboardListener (other->getKeyboardListener());
     setMouseListener    (other->getMouseListener());
-    setMeta             (other->getMeta());
+    setMetaPtr          (other->getMetaPtr());
     setPosition         (other->getPosition());
     setPriority         (other->getPriority());
     setSize             (other->getSize());
-    setText             (other->getText());  // BEAWARE: This does not create new properties struct!
-    setVisible          (other->getVisible());
+    setText             (other->getText());
+    setVisible          (other->isVisible());
 }
 
-sgf::Color3D sgf::Rectangle::getColor() const
+Canvas* Rectangle::getCanvasPtr()
 {
-	return this->color;
+    return canvasPtr;
 }
 
-bool sgf::Rectangle::getContainsText() const
+Color3D Rectangle::getColor() const
 {
-    return containsText;
+	return color;
 }
 
-float sgf::Rectangle::getHeight() const
+float Rectangle::getHeight() const
 {
-    return this->getSize().y;
+    return size.y;
 }
 
-int sgf::Rectangle::getID() const
+int Rectangle::getId() const
 {
-    return this->id;
+    return id;
 }
 
-sgf::KeyboardListener sgf::Rectangle::getKeyboardListener() const
+KeyboardListener Rectangle::getKeyboardListener() const
 {
     return keyboardListener;
 }
 
-void* sgf::Rectangle::getMeta()
+void* Rectangle::getMetaPtr()
 {
-    return this->meta;
+    return metaPtr;
 }
 
-sgf::MouseListener sgf::Rectangle::getMouseListener() const
+MouseListener Rectangle::getMouseListener() const
 {
     return mouseListener;
 }
 
-sgf::Vector2D sgf::Rectangle::getPosition() const
+Vector2D Rectangle::getPosition() const
 {
-	return this->position;
+	return position;
 }
 
-int sgf::Rectangle::getPriority() const
+int Rectangle::getPriority() const
 {
-	return this->priority;
+	return priority;
 }
 
-sgf::Vector2D sgf::Rectangle::getSize() const
+Vector2D Rectangle::getSize() const
 {
-	return this->size;
+	return size;
 }
 
-sgf::TextProperties* sgf::Rectangle::getText()
+TextProperties* Rectangle::getText()
 {
-    return this->textProps;
+    return textPtr;
 }
 
-float sgf::Rectangle::getWidth() const
+float Rectangle::getWidth() const
 {
-    return this->getSize().x;
+    return size.x;
 }
 
-bool sgf::Rectangle::getVisible() const
+float Rectangle::getX() const
 {
-    return this->visible;
+    return position.x;
+}
+float Rectangle::getY() const
+{
+    return position.y;
 }
 
-float sgf::Rectangle::getX() const
+bool Rectangle::isUsingText() const
 {
-    return this->getPosition().x;
-}
-float sgf::Rectangle::getY() const
-{
-    return this->getPosition().y;
+    return usingText;
 }
 
-void sgf::Rectangle::onKeyboardInput(int data)
+bool Rectangle::isVisible() const
 {
-    if(this->visible && this->keyboardListener != nullptr)
-        keyboardListener(data, this->id, this->canvas);
+    return visible;
 }
 
-void sgf::Rectangle::onMouseInput(sgf::MouseEvent event, sgf::Vector2D position)
+void Rectangle::onKeyboardInput(int data)
 {
-    if(this->visible && this->mouseListener != nullptr)
-        mouseListener(event, position, this->id, this->canvas);
+    if(visible && keyboardListener != nullptr)
+        keyboardListener(data, id, canvasPtr);
 }
 
-void sgf::Rectangle::onAdd()
+void Rectangle::onMouseInput(MouseEvent event, Vector2D position)
+{
+    if(visible && mouseListener != nullptr)
+        mouseListener(event, position, id, canvasPtr);
+}
+
+void Rectangle::onAdd()
 {
     // Not implemented by default
 }
 
-void sgf::Rectangle::onRemove()
-{
-    
-}
-
-void sgf::Rectangle::onTick(int tickIndex)
+void Rectangle::onRemove()
 {
     // Not implemented by default
 }
 
-void sgf::Rectangle::updateText()
+void Rectangle::onTick(int tickCount)
 {
-	if(!this->containsText) return;
-	
-	// Update properties of SFML Text instance according to the current properties
-	this->sfmlTextPtr->setString(textProps->content);
-	this->sfmlTextPtr->setFillColor(sf::Color(
-		textProps->color.r,
-		textProps->color.g,
-		textProps->color.b
-	));
-	this->sfmlTextPtr->setCharacterSize(textProps->size);
-    
-    // Also update fields that are read-only extrnally
-    this->textProps->width =
-    sfmlTextPtr->findCharacterPos(sfmlTextPtr->getString().getSize()).x -
-    sfmlTextPtr->findCharacterPos(0).x;
+    // Not implemented by default
 }
 
-void sgf::Rectangle::setColor(sgf::Color3D color)
+void Rectangle::setColor(Color3D color)
 {
 	this->color = color;
-	this->sfmlRect.setFillColor(sf::Color(color.r, color.g, color.b));
+    
+	sfmlRect.setFillColor(sf::Color(color.r, color.g, color.b));
 }
 
-void sgf::Rectangle::setKeyboardListener(sgf::KeyboardListener callback)
+void Rectangle::setKeyboardListener(KeyboardListener callback)
 {
-    this->keyboardListener = callback;
+    keyboardListener = callback;
 }
 
-void sgf::Rectangle::setMouseListener(sgf::MouseListener callback)
+void Rectangle::setMouseListener(MouseListener callback)
 {
-    this->mouseListener = callback;
+    mouseListener = callback;
 }
 
-void sgf::Rectangle::setMeta(void* meta)
+void Rectangle::setMetaPtr(void* ptr)
 {
-    this->meta = meta;
+    metaPtr = ptr;
 }
 
-void sgf::Rectangle::setPosition(sgf::Vector2D position)
+void Rectangle::setPosition(Vector2D position)
 {
 	this->position = position;
-	this->sfmlRect.setPosition(sf::Vector2f(position.x, position.y));
-    if(this->sfmlTextPtr != nullptr)
-        sfmlTextPtr->setPosition(sf::Vector2f(position.x, position.y));
+    
+	sfmlRect.setPosition(sf::Vector2f(position.x, position.y));
+    
+    // If rectangle uses text, it needs its position updated. Canvas does that on refresh
+    if(usingText)
+        textPtr->refreshFlag = true;
 }
 
-void sgf::Rectangle::setPriority(int priority)
+void Rectangle::setPriority(int priority)
 {
 	this->priority = priority;
 }
 
-void sgf::Rectangle::setSize(sgf::Vector2D size)
+void Rectangle::setSize(Vector2D size)
 {
 	this->size = size;
-	this->sfmlRect.setSize(sf::Vector2f(size.x, size.y));
-}
-
-void sgf::Rectangle::setText(sgf::TextProperties* properties)
-{
-    if(properties == nullptr) return;
     
-    /* If this is first text-setting call, mark this rectangle as a one containing
-     * a text - later canvas detects that DURING THE RECTANGLE ADDITION and assigns
-     * it a dedicated SFML Text instance. Additionally whole text is refreshed by
-     * the canvas with SINGLE `updateText` method call. */
-    this->requestedText = true;
-    this->textProps = properties;
+	sfmlRect.setSize(sf::Vector2f(size.x, size.y));
 }
 
-void sgf::Rectangle::setVisible(bool visible)
+void Rectangle::setText(TextProperties* properties)
+{
+    if(properties == nullptr)
+    {
+        usingText = false;
+        return;
+    }
+    
+    // Provided properties are valid, update fields and mark the SFML text for refresh
+    textPtr                 = properties;
+    usingText               = true;
+    textPtr->refreshFlag    = true;
+}
+
+void Rectangle::setVisible(bool visible)
 {
     this->visible = visible;
 }

@@ -34,44 +34,36 @@ sgf::Rectangle* sgf::VList::getMember(int index)
     return (index < 0 || index >= getCount()) ? nullptr : members.at(index);
 }
 
-#include <iostream>
 void sgf::VList::insert(int index, sgf::Rectangle* newMember)
 {
-    std::cout << "insert( " << index << ", " << &newMember << " )" << std::endl;
-    
     // Sum of heights of members with indices below `index` is the `newMember` offset
     float   offset  = 0.F;
     int     mi      = 0;
     for(; mi < index; mi++)
     {
-        std::cout << "getMember( " << mi << " ) -> " << getMember(mi)->getSize().x << std::endl;
         offset += getMember(mi)->getHeight();
     }
     
     // New rectangle `newMember` is added to the list both visually and logically
     newMember->setPosition({ getX(), getY() + offset });
     newMember->setPriority(getPriority());
-    newMember->setVisible(getVisible());
+    newMember->setVisible(isVisible());
     members.insert(members.begin() + mi, newMember);
     mi++;
     
-    std::cout << "3\n";
     // Manage registering the new member in canvas
-    if(canvas == nullptr)   toAdd.push_back(newMember);
-    else                    canvas->add(*newMember);
+    if(getCanvasPtr() == nullptr)   toAdd.push_back(newMember);
+    else                    getCanvasPtr()->add(*newMember);
     
-    std::cout << "4\n";
     // Members with indices above `index` need to be moved by `newMember` height down
     for(; mi < getCount(); mi++)
     {
         Rectangle* currMember = getMember(mi);
         currMember->setPosition({ getX(), currMember->getY() + newMember->getHeight() });
     }
-    std::cout << "5\n";
     
     // Reach of the list is finally updated to fit new contents
     this->updateBounds();
-    std::cout << "6\n";
 }
 
 void sgf::VList::onAdd()
@@ -80,7 +72,7 @@ void sgf::VList::onAdd()
      * processed but not yet registered on canvas before this moment. */
     while(!toAdd.empty())
     {
-        canvas->add(**toAdd.begin());
+        getCanvasPtr()->add(**toAdd.begin());
         toAdd.erase(toAdd.begin());
     }
 }
@@ -89,7 +81,7 @@ void sgf::VList::onRemove()
 {
 // Not checked
     for(int mi = 0; mi < getCount(); mi++)
-        canvas->remove(*getMember(mi));
+        getCanvasPtr()->remove(*getMember(mi));
     
     members.clear();
 }
@@ -109,12 +101,12 @@ void sgf::VList::remove(int index)
     this->members.erase(members.begin() + index);
     
     // Manage unregistering the new member in canvas
-    if(canvas == nullptr)
+    if(getCanvasPtr() == nullptr)
     {
         auto it = std::find(toAdd.begin(), toAdd.end(), targetMember);
         if(it != toAdd.end()) toAdd.erase(it);
     }
-    else canvas->remove(*targetMember);
+    else getCanvasPtr()->remove(*targetMember);
     
     // List size needs an update
     this->updateBounds();

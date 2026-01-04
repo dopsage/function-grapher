@@ -46,12 +46,22 @@ void sgf::Canvas::add(Rectangle* rectanglePtr)
      * its creation is handled by the drawing loop automatically. */
     rectanglePtrs.insert(rectanglePtrs.begin() + index, rectanglePtr);
     
-    // Update IDs of all rectangles to the right from the inserted one including it
-    for(int i = index; i < rectanglePtrs.size(); i++)
-        rectanglePtrs[i]->id = i;
+    /* Update IDs of all rectangles to the right from the inserted one including it.
+     * Notice: mapping of rectangle ids to SFML texts must also be updated. */
+    for(int i = index + 1; i < rectanglePtrs.size(); i++)
+    {
+        int oldId = rectanglePtrs[i]->id++;
+        
+        if(rectangleTexts.find(oldId) != rectangleTexts.end())
+        {
+            rectangleTexts[oldId + 1] = rectangleTexts[oldId];
+            rectangleTexts.erase(oldId);
+        }
+    }
     
     // Let the rectangle communicate back, and notify it about successfull addition
     rectanglePtr->canvasPtr = this;
+    rectanglePtr->id        = index;
     rectanglePtr->onAdd();
 }
 
@@ -129,6 +139,7 @@ void Canvas::stop()
 	active = false;
 }
 
+
 void Canvas::remove(int rectangleId)
 {
     Rectangle* targetPtr = getRectanglePtr(rectangleId);
@@ -143,9 +154,13 @@ void Canvas::remove(int rectangleId)
     if(targetPtr->isUsingText())
         rectangleTexts.erase(rectangleId);
     
-    // Update IDs of all rectangles to the right from the already erased one
-    for(int i = rectangleId; i < rectanglePtrs.size(); i++)
-        rectanglePtrs[i]->id = i;
+    /* Update IDs of all rectangles to the right from the already erased one
+     * Removing mapping of old rectangle id to some SFML text is done on purpose
+     * so the drawing loop detects new id and creates a new SFML text instance ~
+     * ~ the trick lays in the structure: only text properties associated with rectangle
+     * are important, SFML text is just a receiver. */
+    while(rectangleId < rectanglePtrs.size())
+        rectangleTexts.erase(rectanglePtrs[rectangleId++]->id--);
 }
 
 void Canvas::remove(Rectangle* rectanglePtr)
@@ -184,7 +199,6 @@ void Canvas::setTitle(std::string title)
     sfmlWindow.setTitle(sf::String(title));
 }
 
-#include <iostream>
 bool Canvas::tick()
 {
     // Prevent ticking when canvas is inactive

@@ -11,6 +11,7 @@
 #include "SFML/Graphics.hpp"
 #include "SGF/InputParser.hpp"
 #include "SGF/Rectangle.hpp"
+#include "SGF/TextProperties.hpp"
 #include "SGF/Types.hpp"
 
 namespace sgf

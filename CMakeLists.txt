@@ -19,6 +19,7 @@ add_executable(
     src/SGF/Rectangle.cpp
     src/SGF/ScrollView.cpp
     src/SGF/TextInput.cpp
+    src/SGF/TextProperties.cpp
     src/FunctionEntry.cpp
     src/SGF/VList.cpp
     src/SGF/VSlider.cpp

@@ -4,7 +4,9 @@
 #ifndef _RECTANGLE_HPP
 #define _RECTANGLE_HPP
 
+#include <stdexcept>
 #include "SFML/Graphics.hpp"
+#include "SGF/TextProperties.hpp"
 #include "SGF/Types.hpp"
 
 namespace sgf

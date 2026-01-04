@@ -7,6 +7,7 @@
 #include <vector>
 #include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
+#include "SGF/TextProperties.hpp"
 #include "SGF/Types.hpp"
 
 namespace sgf

@@ -192,6 +192,8 @@ void Rectangle::setPosition(Vector2D position)
 
 void Rectangle::setPriority(int priority)
 {
+    if(added) throw std::logic_error("Calling Rectangle::setPriority after addition to canvas is not supported yet");
+    
 	this->priority = priority;
 }
 

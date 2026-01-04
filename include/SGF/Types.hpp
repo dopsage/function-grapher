@@ -5,8 +5,8 @@
 #define _TYPES_HPP
 
 #include <cstdint>
-#include <memory>
 #include <string>
+#include <vector>
 
 namespace sgf
 {
@@ -19,14 +19,15 @@ namespace sgf
     typedef const std::vector<
     std::pair<wchar_t, wchar_t>>    UnicodeRangeVector;
     
-    class Button;
-    class Canvas;
-    class InputParser;
-    class Rectangle;
-    class ScrollView;
-    class TextInput;
-    class VList;
-    class VSlider;
+    class   Button;
+    class   Canvas;
+    class   InputParser;
+    class   Rectangle;
+    class   ScrollView;
+    class   TextInput;
+    struct  TextProperties;
+    class   VList;
+    class   VSlider;
     
     // All of unicode
     const UnicodeRangeVector IF_ALL =
@@ -57,19 +58,6 @@ namespace sgf
     struct Vector2D { float x, y; };
 
     struct Color3D  { Byte r, g, b; };
-    
-    struct TextProperties
-    {
-        // Constant
-        Color3D         color;          // Uniform color
-        std::wstring    content;        // Contained text data in unicode (UTF-16 for Windows, UTF-32 for Linux/Mac)
-        int             size;           // Character size in pixels
-        
-        // Dynamic (they may be externally changed)
-        std::unique_ptr<int[]>  characterWidths;    // Widths of all content unicode characters in pixels
-        int                     length;             // Amount of unicode characters used to form the content
-        bool                    refreshFlag;        // If set, canvas updates the SFML text(s) with the properties and resets the flag
-    };
     
     typedef void (*ButtonListener)      (int rectangleId, Canvas* canvasPtr);
     typedef void (*KeyboardListener)    (int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr);

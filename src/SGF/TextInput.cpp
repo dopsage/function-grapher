@@ -75,7 +75,6 @@ void TextInput::onFieldKeyboardEvent(int keycode, wchar_t unicode, int rectangle
             break;
         }
 	}
-    
 }
 
 void TextInput::onFieldMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr)

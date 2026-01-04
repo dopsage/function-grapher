@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(FunctionGrapher VERSION 1.0.0 LANGUAGES CXX)
 
 # Require C++11
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Find SFML (version 2.5 or higher); look for `graphics`, `window` and `system` modules
@@ -17,11 +17,11 @@ add_executable(
     src/SGF/Canvas.cpp
     src/SGF/InputParser.cpp
     src/SGF/Rectangle.cpp
-    #src/SGF/ScrollView.cpp
-    #src/SGF/Slider.cpp
-    #src/SGF/TextInput.cpp
-    #src/SGF/VList.cpp
-    #src/FunctionEntry.cpp
+    src/SGF/ScrollView.cpp
+    src/SGF/TextInput.cpp
+    src/FunctionEntry.cpp
+    src/SGF/VList.cpp
+    src/SGF/VSlider.cpp
 )
 
 # Copy resources next to the executable so it can use them

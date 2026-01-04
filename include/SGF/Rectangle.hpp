@@ -21,6 +21,7 @@ class Rectangle
     friend class Canvas;
 
 private:
+    bool                added;
     Canvas*             canvasPtr;
 	Color3D	            color;
     int                 id;
@@ -32,7 +33,6 @@ private:
 	sf::RectangleShape  sfmlRect;
 	Vector2D 		    size;
 	TextProperties*     textPtr;
-    bool                usingText;
     bool                visible;
 
 public:
@@ -54,11 +54,12 @@ public:
     float                   getWidth()                  const;
     float                   getX()                      const;
     float                   getY()                      const;
+    bool                    isAdded()                   const;
     bool                    isUsingText()               const;
     bool                    isVisible()                 const;
     
     // These two methods invoke keyboard and mouse listeners with given parameters
-    void                    onKeyboardInput(int data);
+    void                    onKeyboardInput(int keycode, wchar_t unicode);
     void                    onMouseInput(MouseEvent event, Vector2D position);
     
     virtual void            onAdd();
@@ -74,7 +75,7 @@ public:
     virtual void            setPosition(Vector2D position);
 	virtual void            setPriority(int priority);
 	virtual void            setSize(Vector2D size);
-    virtual void            setText(TextProperties* properties);
+    virtual void            setText(TextProperties* text);
     virtual void            setVisible(bool visible);
 };
 

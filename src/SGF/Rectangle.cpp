@@ -4,11 +4,11 @@
 using namespace sgf;
 
 Rectangle:: Rectangle() :
+            added(false),
             canvasPtr(nullptr),
             id(-1),
             sfmlRect(),
-            textPtr(nullptr),
-            usingText(false)
+            textPtr(nullptr)
 {
     setColor({0,0,0});              // color
     setKeyboardListener(nullptr);   // keyboardListener
@@ -111,14 +111,20 @@ float Rectangle::getX() const
 {
     return position.x;
 }
+
 float Rectangle::getY() const
 {
     return position.y;
 }
 
+bool Rectangle::isAdded() const
+{
+    return added;
+}
+
 bool Rectangle::isUsingText() const
 {
-    return usingText;
+    return (textPtr != nullptr);
 }
 
 bool Rectangle::isVisible() const
@@ -126,10 +132,10 @@ bool Rectangle::isVisible() const
     return visible;
 }
 
-void Rectangle::onKeyboardInput(int data)
+void Rectangle::onKeyboardInput(int keycode, wchar_t unicode)
 {
     if(visible && keyboardListener != nullptr)
-        keyboardListener(data, id, canvasPtr);
+        keyboardListener(keycode, unicode, id, canvasPtr);
 }
 
 void Rectangle::onMouseInput(MouseEvent event, Vector2D position)
@@ -140,12 +146,12 @@ void Rectangle::onMouseInput(MouseEvent event, Vector2D position)
 
 void Rectangle::onAdd()
 {
-    // Not implemented by default
+    added = true;
 }
 
 void Rectangle::onRemove()
 {
-    // Not implemented by default
+    added = false;
 }
 
 void Rectangle::onTick(int tickCount)
@@ -174,7 +180,6 @@ void Rectangle::setMetaPtr(void* ptr)
 {
     metaPtr = ptr;
 }
-
 void Rectangle::setPosition(Vector2D position)
 {
 	this->position = position;
@@ -182,8 +187,7 @@ void Rectangle::setPosition(Vector2D position)
 	sfmlRect.setPosition(sf::Vector2f(position.x, position.y));
     
     // If rectangle uses text, it needs its position updated. Canvas does that on refresh
-    if(usingText)
-        textPtr->refreshFlag = true;
+    if(textPtr != nullptr) textPtr->refreshFlag = true;
 }
 
 void Rectangle::setPriority(int priority)
@@ -193,23 +197,21 @@ void Rectangle::setPriority(int priority)
 
 void Rectangle::setSize(Vector2D size)
 {
+    // Clamp the vector for safety reasons, it might save some overriders of this method
+    size.x = size.x < 0.0f ? 0.0f : size.x;
+    size.y = size.y < 0.0f ? 0.0f : size.y;
+    
 	this->size = size;
     
 	sfmlRect.setSize(sf::Vector2f(size.x, size.y));
 }
 
-void Rectangle::setText(TextProperties* properties)
+void Rectangle::setText(TextProperties* textPtr)
 {
-    if(properties == nullptr)
-    {
-        usingText = false;
-        return;
-    }
+    this->textPtr = textPtr;
     
-    // Provided properties are valid, update fields and mark the SFML text for refresh
-    textPtr                 = properties;
-    usingText               = true;
-    textPtr->refreshFlag    = true;
+    // Mark the SFML text for refresh, if valid text was set
+    if(textPtr != nullptr) textPtr->refreshFlag = true;
 }
 
 void Rectangle::setVisible(bool visible)

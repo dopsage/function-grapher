@@ -18,29 +18,24 @@ struct FunctionData
 class FunctionEntry : public sgf::Rectangle
 {
 private:
-    sgf::Button         button;
-    sgf::TextInput      input;
-    static void         onButtonEvent(int id, sgf::Canvas* canvas);
-    sgf::VList*         parentList;
+    sgf::Button     button;
+    sgf::TextInput  input;
+    static void     onButtonEvent(int rectangleId, sgf::Canvas* canvasPtr);
 
 public:
     FunctionEntry();
-    void                    copy(sgf::Rectangle* other) override;
-    FunctionData            getData() const;
-    sgf::VList&             getParentList();
-    sgf::TextProperties*    getText();
-    sgf::Button&            getButton();
-    sgf::TextInput&         getTextInput();
-    bool            isValid() const;
-    void            onAdd() override;
-    void            onRemove() override;
-    void            setColor(sgf::Color3D color) override;
-    void            setParentList(sgf::VList* list);
-    void            setPosition(sgf::Vector2D position) override;
-    void            setPriority(int priority) override;
-    void            setSize(sgf::Vector2D size) override;
-    void            setText(sgf::TextProperties* properties) override;
-    void            setVisible(bool visible) override;
+    void                    copy(sgf::Rectangle* other)                     override;
+    sgf::Button*            getButtonPtr();
+    FunctionData            getFunctionData()                               const;
+    sgf::TextInput*         getTextInputPtr();
+    void                    onAdd()                                         override;
+    void                    onRemove()                                      override;
+    void                    setButtonListener(sgf::ButtonListener listener);
+    void                    setButtonWidth(float width);
+    void                    setPosition(sgf::Vector2D position)             override;
+    void                    setPriority(int priority)                       override;
+    void                    setSize(sgf::Vector2D size)                     override;
+    void                    setVisible(bool visible)                        override;
 };
 
 #endif

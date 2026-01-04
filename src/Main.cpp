@@ -3,256 +3,163 @@
 #include <iostream>
 #include "SGF/Button.hpp"
 #include "SGF/Canvas.hpp"
-//#include "SGF/Rectangle.hpp"
-//#include "SGF/ScrollView.hpp"
-//#include "SGF/TextInput.hpp"
+#include "SGF/Rectangle.hpp"
+#include "SGF/ScrollView.hpp"
+#include "SGF/TextInput.hpp"
 #include "SGF/Types.hpp"
-//#include "FunctionEntry.hpp"
+#include "SGF/VList.hpp"
+#include "SGF/VSlider.hpp"
+#include "FunctionEntry.hpp"
 
-// Colors
-static const sgf::Color3D   C_BLACK ({ 0, 0, 0 });
-static const sgf::Color3D   C_BLUE  ({ 0, 0, 255 });
-static const sgf::Color3D   C_RED   ({ 255, 0, 0 });
-static const sgf::Color3D   C_GRAY  ({ 128, 128, 128 });
-static const sgf::Color3D   C_GREEN ({ 0, 255, 0 });
-static const sgf::Color3D   C_WHITE ({ 255, 255, 255 });
-
-// Layout-specific
-static const float              F_CURSOR_WIDTH              (2.F);
-static const float              F_FUNCTION_ENTRY_HEIGHT     (50.F);
-static const float              F_SCROLL_VIEW_WIDTH         (200.F);
-static const float              F_SLIDER_HANDLE_WIDTH       (25.F);
-static const float              F_STATUS_BAR_HEIGHT         (50.F);
-static const float              F_STATUS_MOUSE_INFO_WIDTH   (100.F);
-static const float              F_STATUS_ZOOM_INFO_WIDTH    (100.F);
-static const float              F_TOOLBAR_BUTTON_MARGIN     (30.F);
+static const sgf::Color3D       C_BLACK ({ 0x00, 0x00, 0x00 });
+static const sgf::Color3D       C_BLUE  ({ 0x00, 0x00, 0xff });
+static const sgf::Color3D       C_RED   ({ 0xff, 0x00, 0x00 });
+static const sgf::Color3D       C_GRAY  ({ 0x80, 0x80, 0x80 });
+static const sgf::Color3D       C_GREEN ({ 0x00, 0xff, 0x00 });
+static const sgf::Color3D       C_WHITE ({ 0xff, 0xff, 0xff });
+static const float              F_CURSOR_WIDTH              (2.0f);
+static const float              F_FUNCTION_ENTRY_HEIGHT     (50.0f);
+static const float              F_SCROLL_VIEW_WIDTH         (300.0f);
+static const float              F_SLIDER_HANDLE_HEIGHT      (50.0f);
+static const float              F_SLIDER_WIDTH              (25.0f);
+static const float              F_STATUS_BAR_HEIGHT         (50.0f);
+static const float              F_STATUS_MOUSE_INFO_WIDTH   (100.0f);
+static const float              F_STATUS_ZOOM_INFO_WIDTH    (100.0f);
+static const float              F_TOOLBAR_BUTTON_MARGIN     (30.0f);
+static const int                I_CANVAS_DRAW_RATE          (60);
+static const int                I_STATUS_TEXT_SIZE          (16);
 static const sgf::Milliseconds  MS_CURSOR_BLINK_DURATION    (250);
-static const sgf::Milliseconds  MS_CANVAS_TICK_DURATION     (1000/60);
 static const std::string        STR_CANVAS_TITLE            ("Function grapher");
 static const sgf::Vector2D      V_CANVAS_SIZE               ({ 1280, 720 });
-static const sgf::Vector2D      V_INPUT_PADDING             ({ 10, 10 });
+static const sgf::Vector2D      V_TEXT_INPUT_PADDING        ({ 10, 10 });
 static const sgf::Vector2D      V_TOOLBAR_BUTTON_SIZE       ({ 50, 50 });
 
-static void onAddEntryButtonEvent   (int id, sgf::Canvas* canvas);
-static void onResetGraphButtonEvent (int id, sgf::Canvas* canvas);
-static void onZoomDownButtonEvent   (int id, sgf::Canvas* canvas);
-static void onZoomUpButtonEvent     (int id, sgf::Canvas* canvas);
+static void onAddEntryButtonEvent   (int rectangleId, sgf::Canvas* canvasPtr);
+static void onEntryTextInputEvent   (std::wstring content, int rectangleId, sgf::Canvas* canvasPtr);
+static void onRemoveEntryButtonEvent(int rectangleId, sgf::Canvas* canvasPtr);
+static void onResetGraphButtonEvent (int rectangleId, sgf::Canvas* canvasPtr);
+static void onZoomDownButtonEvent   (int rectangleId, sgf::Canvas* canvasPtr);
+static void onZoomUpButtonEvent     (int rectangleId, sgf::Canvas* canvasPtr);
 
-//static std::deque<FunctionEntry>        feCopies;   // Deque preserves addresses!
-//static FunctionEntry                    fePrefab;
-//static std::deque<sgf::TextProperties>  feTProps;   // Deque preserves addresses!
+static std::deque<FunctionEntry>        fepi;       // Function Entry Prefab Instances
+static FunctionEntry                    fePrefab;
+static std::deque<sgf::TextProperties>  fept;       // Function Entry Prefab Texts
 static bool                             run;
 
-static void textinputlistener(const std::string& content, int id, sgf::Canvas* canvas)
-{
-    std::cout << id << ": " << content << std::endl;
-}
 int main()
 {
     /********** CONFIGURE INSTANCES **********/
     
-                                            //  color    content        refreshFlag size    width
-    sgf::TextProperties mousePositionText   = { C_BLACK, "(100, 100)",  0,          16,     0 };
-    sgf::TextProperties zoomText            = { C_BLACK, "x1.0",        0,          16,     0 };
+    sgf::Button         bAddEntry;
+    sgf::Button         bResetGraph;
+    sgf::Button         bZoomDown;
+    sgf::Button         bZoomUp;
+    sgf::Canvas         canvas;
+    sgf::Rectangle      rGraphBackground;
+    sgf::Rectangle      rStatusBackground;
+    sgf::Rectangle      rMousePosition;
+    sgf::Rectangle      rZoom;
+    sgf::ScrollView     svFunctions;
+    sgf::TextProperties tMousePosition = { C_BLACK, L"(100, 100)", I_STATUS_TEXT_SIZE};
+    sgf::TextProperties tZoom          = { C_BLACK, L"x1.0",       I_STATUS_TEXT_SIZE};
+    sgf::VList          vlToolbarButtons;
     
-/*
+    bAddEntry.setColor      (C_GREEN);
+    bAddEntry.setListener   (onAddEntryButtonEvent);
+    bAddEntry.setMetaPtr    (&svFunctions);     // Scroll view gets updated on click
+    bAddEntry.setSize       ({ F_SCROLL_VIEW_WIDTH - F_SLIDER_WIDTH, F_FUNCTION_ENTRY_HEIGHT });
+    
+    bResetGraph.setColor    (C_BLUE);
+    bResetGraph.setListener (onResetGraphButtonEvent);
+    bResetGraph.setSize     (V_TOOLBAR_BUTTON_SIZE);
 
+    bZoomDown.setColor      (C_GREEN);
+    bZoomDown.setListener   (onZoomDownButtonEvent);
+    bZoomDown.setSize       (V_TOOLBAR_BUTTON_SIZE);
+    
+    bZoomUp.setColor    (C_RED);
+    bZoomUp.setListener (onZoomUpButtonEvent);
+    bZoomUp.setSize     (V_TOOLBAR_BUTTON_SIZE);
+    
+    canvas.setDrawingRate   (I_CANVAS_DRAW_RATE);
+    canvas.setPosition      ({ 1920 - V_CANVAS_SIZE.x, 1080 - V_CANVAS_SIZE.y });
+    canvas.setSize          (V_CANVAS_SIZE);
+    canvas.setTitle         (STR_CANVAS_TITLE);
 
-// TODO: make setColor of every rect make its subrects the same color
-    sgf::Button     bAddEntry;
-    sgf::Button     bResetGraph;
-    sgf::Button     bZoomDown;
-    sgf::Button     bZoomUp;
-    sgf::Canvas     cCanvas;
-    sgf::Rectangle  rGraphBackground;
-    sgf::Rectangle  rStatusBackground;
-    sgf::Rectangle  tMousePosition;
-    sgf::Rectangle  tZoom;
-    sgf::ScrollView svFunctions;
-    sgf::VList      vlToolbarButtons;
-    
-    // [BUTTON] ADD ENTRY
-    bAddEntry.setButtonListener(onAddEntryButtonEvent);
-    bAddEntry.setColor(C_BLUE);
-    bAddEntry.setMetaPtr(&svFunctions);    // Scroll view gets updated with entries on button click
-    bAddEntry.setPosition({ 0, 0 });    // Automatic (svFunctions)
-    bAddEntry.setPriority(0);           // Automatic (svFunctions)
-    bAddEntry.setSize({
-        F_SCROLL_VIEW_WIDTH - F_SLIDER_HANDLE_WIDTH,
-        F_FUNCTION_ENTRY_HEIGHT
-    });
-    bAddEntry.setText(nullptr);
-    bAddEntry.setVisible(true);
-    
-    // [BUTTON] RESET GRAPH
-    bResetGraph.setButtonListener(onResetGraphButtonEvent);
-    bResetGraph.setColor(C_BLUE);
-    bResetGraph.setMetaPtr(nullptr);
-    bResetGraph.setPosition({ 0, 0 });  // Automatic (vlToolbarButtons)
-    bResetGraph.setPriority(0);         // Automatic (vlToolbarButtons)
-    bResetGraph.setSize(V_TOOLBAR_BUTTON_SIZE);
-    bResetGraph.setText(nullptr);
-    bResetGraph.setVisible(true);
-    
-    // [BUTTON] ZOOM DOWN
-    bZoomDown.copy(&bResetGraph);
-    bZoomDown.setColor(C_GREEN);
-    bZoomDown.setButtonListener(onZoomDownButtonEvent);
-    
-    // [BUTTON] ZOOM UP
-    bZoomUp.copy(&bResetGraph);
-    bZoomUp.setColor(C_RED);
-    bZoomUp.setButtonListener(onZoomUpButtonEvent);
-    
-    // [CANVAS] CANVAS
-// TODO: Make the main loop not busy-wait for the next frame, cpu is being wasted!
-// TODO: Solve the problem with removal of text-assigned rectangle (in remove method)
-//       recons: Just try adding FEs using the button and inputting their indices in them,
-//       then look what happens to the ones beneath the removed one! it cannot be like tha!
-//       this sometimes produces segfaults too, probably textprops mismatch.
-    cCanvas.setPosition({ 1920 - V_CANVAS_SIZE.x, 1080 - V_CANVAS_SIZE.y });    // For testing
-    cCanvas.setSize(V_CANVAS_SIZE);
-    cCanvas.setTickDuration(MS_CANVAS_TICK_DURATION);
-    cCanvas.setTitle(STR_CANVAS_TITLE);
-    
-    // [RECTANGLE] GRAPH BACKGROUND
-    rGraphBackground.setColor(C_WHITE);
-    rGraphBackground.setMetaPtr(nullptr);
+    rGraphBackground.setColor   (C_WHITE);
     rGraphBackground.setPosition({ F_SCROLL_VIEW_WIDTH, 0 });
-    rGraphBackground.setPriority(0); 
-    rGraphBackground.setSize({
-        V_CANVAS_SIZE.x - F_SCROLL_VIEW_WIDTH,
-        V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT
-    });
+    rGraphBackground.setPriority(0);
+    rGraphBackground.setSize    ({ V_CANVAS_SIZE.x - F_SCROLL_VIEW_WIDTH, V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
     
-    // [RECTANGLE] STATUS BACKGROUND
-    rStatusBackground.setColor(C_GRAY);
-    rStatusBackground.setMetaPtr(nullptr);
-    rStatusBackground.setPosition({
-        0,
-        V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT
-    });
-    rStatusBackground.setPriority(2); 
-    rStatusBackground.setSize({
-        V_CANVAS_SIZE.x,
-        F_STATUS_BAR_HEIGHT
-    });
+    rStatusBackground.setColor      (C_GRAY);
+    rStatusBackground.setPosition   ({ 0, V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
+    rStatusBackground.setPriority   (5);
+    rStatusBackground.setSize       ({ V_CANVAS_SIZE.x, F_STATUS_BAR_HEIGHT });
     
-    // [TEXT] MOUSE POSITION
-    tMousePosition.setColor(C_GRAY);
-    tMousePosition.setMetaPtr(nullptr);
-    tMousePosition.setPosition({
-        V_CANVAS_SIZE.x - F_STATUS_ZOOM_INFO_WIDTH - F_STATUS_MOUSE_INFO_WIDTH,
-        V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT
-    });
-    tMousePosition.setPriority(3); 
-    tMousePosition.setSize({ F_STATUS_MOUSE_INFO_WIDTH, F_STATUS_BAR_HEIGHT });
-    tMousePosition.setText(&mousePositionText);
-    tMousePosition.setVisible(true);
+    rMousePosition.setColor     (C_GRAY);
+    rMousePosition.setPosition  ({  V_CANVAS_SIZE.x - F_STATUS_ZOOM_INFO_WIDTH - F_STATUS_MOUSE_INFO_WIDTH,
+                                    V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
+    rMousePosition.setPriority  (6); 
+    rMousePosition.setSize      ({ F_STATUS_MOUSE_INFO_WIDTH, F_STATUS_BAR_HEIGHT });
+    rMousePosition.setText      (&tMousePosition);
     
-    // [TEXT] ZOOM
-    tZoom.copy(&tMousePosition);
-    tZoom.setPosition({
-        tZoom.getX() + F_STATUS_MOUSE_INFO_WIDTH,
-        tZoom.getY()
-    });
-    tZoom.setText(&zoomText);
+    rZoom.copy          (&rMousePosition);
+    rZoom.setPosition   ({ rZoom.getX() + F_STATUS_MOUSE_INFO_WIDTH, rZoom.getY() });
+    rZoom.setText       (&tZoom);
     
-    // [FUNCTION ENTRY] FUNCTION ENTRY PREFAB
-// TODO: Make setText calls direct, so there is no need to dig deep (like below to getField).
-    fePrefab.setColor(C_GREEN);
-    fePrefab.setParentList(&svFunctions.getList());
-    fePrefab.setMetaPtr(nullptr);
-    fePrefab.setPosition({ 0, 0 });     // Automatic (svFunctions.getList)
-    fePrefab.setPriority(0);            // Automatic (svFunctions.getList)
-    fePrefab.setSize(bAddEntry.getSize());
-    fePrefab.setText(nullptr);
-    fePrefab.setVisible(true);
-    fePrefab.getButton().setColor(C_RED);
-    fePrefab.getTextInput().setBlinkDuration(MS_CURSOR_BLINK_DURATION);
-    fePrefab.getTextInput().setColor(C_BLUE);
-    fePrefab.getTextInput().setCursorWidth(F_CURSOR_WIDTH);
-    fePrefab.getTextInput().setFilter(sgf::InputFilter::MATH);
-    fePrefab.getTextInput().setLeftPadding(V_INPUT_PADDING.x);
-    fePrefab.getTextInput().setVerticalPadding(V_INPUT_PADDING.y);
-    fePrefab.getTextInput().getField().setText(nullptr);    // Prefab variable, needs setting
-    fePrefab.getTextInput().getCursor().setColor(C_BLACK);
-    fePrefab.getTextInput().getField().setColor(C_GREEN);
+    fePrefab.setButtonListener  (onRemoveEntryButtonEvent);
+    fePrefab.setButtonWidth     (F_FUNCTION_ENTRY_HEIGHT);
+    fePrefab.setSize            ({ F_SCROLL_VIEW_WIDTH - F_SLIDER_WIDTH, F_FUNCTION_ENTRY_HEIGHT });
+    fePrefab.getButtonPtr()->setColor   (C_BLACK);
+    fePrefab.getButtonPtr()->setMetaPtr (&fePrefab);                            // Prefab variable
+    fePrefab.getTextInputPtr()->setBlinkDuration    (MS_CURSOR_BLINK_DURATION);
+    fePrefab.getTextInputPtr()->setColor            (C_BLUE);
+    fePrefab.getTextInputPtr()->setCursorWidth      (F_CURSOR_WIDTH);
+    fePrefab.getTextInputPtr()->setFieldText        (nullptr);                  // Prefab variable
+    fePrefab.getTextInputPtr()->setFilterPtr        (&sgf::IF_ALL);
+    fePrefab.getTextInputPtr()->setLeftPadding      (V_TEXT_INPUT_PADDING.x);
+    fePrefab.getTextInputPtr()->setListener         (onEntryTextInputEvent);
+    fePrefab.getTextInputPtr()->setVerticalPadding  (V_TEXT_INPUT_PADDING.y);
+    fePrefab.getTextInputPtr()->getCursorPtr()->setColor(C_BLACK);
+    fePrefab.getTextInputPtr()->getFieldPtr()->setColor (C_RED);
     
-    fePrefab.getTextInput().setListener(textinputlistener);
+    svFunctions.setColor        (C_GRAY);
+    svFunctions.setPriority     (0);
+    svFunctions.setSize         ({ F_SCROLL_VIEW_WIDTH, V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
+    svFunctions.setSliderWidth  (F_SLIDER_WIDTH);
+    svFunctions.getSliderPtr()->setColor        (C_BLUE);
+    svFunctions.getSliderPtr()->setHandleHeight (F_SLIDER_HANDLE_HEIGHT);
+    svFunctions.getSliderPtr()->getHandlePtr()->setColor(C_WHITE);
     
-    // [SCROLL VIEW] FUNCTIONS
-// TODO: add getSlider for customization
-    svFunctions.setColor(C_RED);
-    svFunctions.setMetaPtr(nullptr);
-    svFunctions.setPosition({ 0, 0 });
-    svFunctions.setPriority(1);
-    svFunctions.setSize({
-        F_SCROLL_VIEW_WIDTH,
-        V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT
-    });
-    svFunctions.setSliderWidth(F_SLIDER_HANDLE_WIDTH);
-    svFunctions.setText(nullptr);
-    svFunctions.setVisible(true);
-    svFunctions.getList().insert(0, &bAddEntry);
-    
-    // [VERTICAL LIST] TOOLBAR BUTTONS
-    vlToolbarButtons.setColor(C_WHITE);
-    vlToolbarButtons.setPosition({
-        V_CANVAS_SIZE.x - 1 * V_TOOLBAR_BUTTON_SIZE.x - F_TOOLBAR_BUTTON_MARGIN,
-        V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT - 3 * V_TOOLBAR_BUTTON_SIZE.y - F_TOOLBAR_BUTTON_MARGIN
-    });
+    vlToolbarButtons.setPosition({  V_CANVAS_SIZE.x - 1 * V_TOOLBAR_BUTTON_SIZE.x - F_TOOLBAR_BUTTON_MARGIN,
+                                    V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT - 3 * V_TOOLBAR_BUTTON_SIZE.y - F_TOOLBAR_BUTTON_MARGIN });
     vlToolbarButtons.setPriority(1);
-    vlToolbarButtons.setSize({ V_TOOLBAR_BUTTON_SIZE.x, 3 * V_TOOLBAR_BUTTON_SIZE.y });
-    vlToolbarButtons.setText(nullptr);
-    vlToolbarButtons.setVisible(true);
-    vlToolbarButtons.insert(0, &bZoomUp);
-    vlToolbarButtons.insert(1, &bZoomDown);
-    vlToolbarButtons.insert(2, &bResetGraph);
     
     /********** RUN THE FUNCTION GRAPHER APPLICATION **********/    
     
-    /*
-    cCanvas.add(bAddEntry);
-    cCanvas.add(rGraphBackground);
-    cCanvas.add(rStatusBackground);
-    cCanvas.add(tMousePosition);
-    cCanvas.add(tZoom);
-    cCanvas.add(svFunctions);
-    cCanvas.add(vlToolbarButtons);
-    */
+// TODO: Make canvas ensure priority order when they change, for now it is done once (see Canvas module)
+    svFunctions.getListPtr()->push(&bAddEntry);
+    vlToolbarButtons.push(&bZoomUp);
+    vlToolbarButtons.push(&bZoomDown);
+    vlToolbarButtons.push(&bResetGraph);
     
-    sgf::Canvas canvas;
-    canvas.setDrawingRate(4);
-    canvas.setPosition({ 1920 - V_CANVAS_SIZE.x, 1080 - V_CANVAS_SIZE.y });    // For testing
-    canvas.setSize(V_CANVAS_SIZE);
-    canvas.setTitle(STR_CANVAS_TITLE);
+// Debug
+    fePrefab.getTextInputPtr()->setFieldText(&tZoom);
+    svFunctions.getListPtr()->push(&fePrefab);
     
-    sgf::Button x;
-    x.setListener(onResetGraphButtonEvent);
-    x.setColor(C_BLUE);
-    x.setMetaPtr(nullptr);    // Scroll view gets updated with entries on button click
-    x.setPosition({ 100, 100 });    // Automatic (svFunctions)
-    x.setPriority(2);           // Automatic (svFunctions)
-    x.setSize({ 200, 200});
-    x.setText(nullptr);
-    x.setVisible(true);
-    
-    sgf::Button y;
-    y.copy(&x);
-    y.setPriority(1);
-    y.setColor(C_RED);
-    y.setPosition({y.getX() + 100, y.getY()});
-    
-    sgf::Button z;
-    z.copy(&y);
-    z.setPriority(0);
-    z.setColor(C_GREEN);
-    z.setPosition({y.getX() + 100, y.getY()});
-    
-    canvas.add(&x);
-    canvas.add(&y);
-    canvas.add(&z);
+    canvas.add(&bAddEntry);
+    canvas.add(&bResetGraph);
+    canvas.add(&bZoomDown);
+    canvas.add(&bZoomUp);
+    canvas.add(&rGraphBackground);
+    canvas.add(&rStatusBackground);
+    canvas.add(&rMousePosition);
+    canvas.add(&rZoom);
+    canvas.add(&svFunctions);
+    canvas.add(&vlToolbarButtons);
+
+// Debug
+    canvas.add(&fePrefab);
     
     run = true;
     while(canvas.isActive())
@@ -268,31 +175,29 @@ int main()
 
 static void onAddEntryButtonEvent(int id, sgf::Canvas* canvas)
 {
-    /*
-    sgf::ScrollView* svFunctions = (sgf::ScrollView*)canvas->getRectanglePtr(id)->getMetaPtr();
-    std::cout << "Add entry " << svFunctions->getList().getCount() << std::endl;
-    
-    /* Add a new function entry instance together with text properties that are bound
-     * to it. The entry is a copy of the function entry prefab. /
-    feCopies.push_back(FunctionEntry());
-    feTProps.push_back({ C_BLACK, "", 16 });
-    feCopies.back().copy(&fePrefab);
-    feCopies.back().getTextInput().getField().setText(&feTProps.back());
-    
-    svFunctions->getList().insert(svFunctions->getList().getCount() - 1, &feCopies.back());
-    */
+    std::cout << "Add entry" << std::endl;
 }
 
-static void onResetGraphButtonEvent(int id, sgf::Canvas* canvas)
+static void onEntryTextInputEvent(std::wstring content, int rectangleId, sgf::Canvas* canvasPtr)
+{
+    std::wcout << L"Text entered in " << rectangleId << L": " << content << std::endl;
+}
+
+static void onRemoveEntryButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
+{
+    std::cout << "Remove entry" << std::endl;
+}
+
+static void onResetGraphButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
 {
     std::cout << "Reset graph" << std::endl;
 }
-static void onZoomDownButtonEvent(int id, sgf::Canvas* canvas)
+static void onZoomDownButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
 {
     std::cout << "Zoom down" << std::endl;
 }
 
-static void onZoomUpButtonEvent(int id, sgf::Canvas* canvas)
+static void onZoomUpButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
 {
     std::cout << "Zoom up" << std::endl;
 }

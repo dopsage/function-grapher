@@ -70,7 +70,7 @@ float Canvas::getHeight() const
 	return size.y;
 }
 
-InputParser* Canvas::getInputParser()
+InputParser* Canvas::getInputParserPtr()
 {
     return &inputParser;
 }
@@ -148,6 +148,13 @@ void Canvas::remove(int rectangleId)
         rectanglePtrs[i]->id = i;
 }
 
+void Canvas::remove(Rectangle* rectanglePtr)
+{
+    if(rectanglePtr == nullptr) return;
+    
+    Canvas::remove(rectanglePtr->getId());
+}
+
 void Canvas::setDrawingRate(int amount)
 {
     drawingRate = amount;
@@ -177,6 +184,7 @@ void Canvas::setTitle(std::string title)
     sfmlWindow.setTitle(sf::String(title));
 }
 
+#include <iostream>
 bool Canvas::tick()
 {
     // Prevent ticking when canvas is inactive
@@ -202,6 +210,10 @@ bool Canvas::tick()
     // Request cleaning of the window content by SFML before drawing it again
     sfmlWindow.clear();
 
+    /* Refresh flags of text properties must be reset after looping through all rectangle
+     * instances in order to allow each rectangle using the properties be updated with them. */
+    std::vector<bool*> setFlags;
+    
     /* Draw all rectangles by exploiting their one-way magic of friendship.
      * Call update method for each rectangle, no matter the visibility status. */
     for(Rectangle* r : rectanglePtrs)
@@ -220,13 +232,13 @@ bool Canvas::tick()
             
             if(rectangleTexts.find(rid) == rectangleTexts.end())
             {
-                /* SFML Text is not created for the rectangle yet, do it and
-                 * set the refresh flag of its text properties to induce the update. */
+                /* SFML Text is not created for the rectangle yet, do it and increase
+                 * the refresh counter of its text properties to induce the update. */
                 rectangleTexts[rid] = sf::Text("", sfmlFont);
-                rtp->refreshFlag = true;
+                rtp->refreshFlag    = true;
             }
             
-            // If the rectangle set the refresh flag, update SFML text with properties data
+            // If properties request refresh, update the SFML text with their data
             if(rtp->refreshFlag)
             {
                 // Update SFML text with properties & rectangle's data
@@ -236,10 +248,13 @@ bool Canvas::tick()
                 sfmlTextPtr->setCharacterSize(rtp->size);                                       // size
                 sfmlTextPtr->setPosition(sf::Vector2f(r->getX(), r->getY()));
                 
-                // Update the properties data themselves
-                rtp->refreshFlag    =   false;                                                  // refreshFlag
-                rtp->width          =   sfmlTextPtr->findCharacterPos(rtp->content.size()).x -  // width
-                                        sfmlTextPtr->findCharacterPos(0).x;
+                // Update the dynamic properties, refresh flag is reset later so leave it in vector
+                rtp->length             = rtp->content.size();                      // length
+                rtp->characterWidths    = std::make_unique<int[]>(rtp->length);     // characterWidths
+                for(int ci = 0; ci < rtp->length; ci++)
+                    rtp->characterWidths[ci] =  sfmlTextPtr->findCharacterPos(ci + 1).x -
+                                                sfmlTextPtr->findCharacterPos(ci).x;
+                setFlags.push_back(&rtp->refreshFlag);
             }
             
             sfmlWindow.draw(rectangleTexts[rid]);
@@ -251,6 +266,9 @@ bool Canvas::tick()
              rectangleTexts.erase(r->getId());
         }
     }
+    
+    // Reset the refresh flags of the used text properties
+    for(bool* flag : setFlags) *flag = false;
     
     /* Request display of the rectangles to SFML, which automatically handles previously
      * specified drawing rate. */

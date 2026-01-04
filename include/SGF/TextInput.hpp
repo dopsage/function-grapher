@@ -14,66 +14,56 @@ namespace sgf
 
 /* Provides a text input functionality with really simplistic controls. It is possible
  * to specify certain padding value of the input text, which automatically transforms
- * according to the current data. Text functions for the a class instance are completely
- * ignored, use those belonging to the input field (obtained using `getField` method). */
+ * according to the current data. */
 class TextInput final : public Rectangle
 {
 private:
     Milliseconds        blinkDuration;
-    Rectangle           cursor;         // Each TI has its own cursor ... not perfect but good for now
-	InputFilter         currentFilter;
-    RangeVector*        currentFilterPtr;
+    Rectangle           cursor;
     int 			    cursorIndex;
     Rectangle           field;
-    bool                isAllowedByFilter(int unicode);
+    UnicodeRangeVector* filterPtr;
+    bool                focused;
     bool                isFieldMouseDown;
-    static const int    keyBackspace;
-    static const int    keyLeftArrow;
-    static const int    keyReturn;
-    static const int    keyRightArrow;
-    bool                isSelected;
+    static const int    KEY_BACKSPACE;
+    static const int    KEY_LEFT_ARROW;
+    static const int    KEY_RETURN;
+    static const int    KEY_RIGHT_ARROW;
     Milliseconds        lastBlinkTime;
-    int                 lastTextSize;
-    int                 leftPad;
+    int                 leftPadding;
     TextInputListener   listener;
-    static void         onFieldKeyboardEvent(int data, int id, Canvas* canvas);
-    static void         onFieldMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
-    void                updateCursor();
-    
-    // Contains size of each text character (ordered from left) in pixels
-    std::vector<float> textCharSizes;
-    
-    int                 vertPad;
+    static void         onFieldKeyboardEvent(int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr);
+    static void         onFieldMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr);
+    void                updateCursorPosition();
+    void                sanitizeContent();
+    int                 verticalPadding;
     
 public:
 	TextInput();
-    void                copy(Rectangle* other) override;
-    Milliseconds        getBlinkDuration() const;
-	const std::string*  getContent();
-    Rectangle&          getCursor();
-    int                 getCursorWidth() const;
-    Rectangle&          getField();
-    InputFilter         getFilter();
-    int                 getLeftPadding() const;
-    TextInputListener   getListener() const;
-    TextProperties*     getText() override;
-    int                 getVerticalPadding() const;
+    void                copy(Rectangle* other)                      override;
+    Milliseconds        getBlinkDuration()                          const;
+    Rectangle*          getCursorPtr();
+    Rectangle*          getFieldPtr();
+    UnicodeRangeVector* getFilterPtr();
+    int                 getLeftPadding()                            const;
+    TextInputListener   getListener()                               const;
+    int                 getVerticalPadding()                        const;
+    bool                isAllowedByFilter(wchar_t unicode)          const;
+    bool                isFocused()                                 const;
     void                onAdd() override;
     void                onRemove() override;
-    void                onTick(int tickIndex) override;
+    void                onTick(int tickCount) override;
     void                setBlinkDuration(Milliseconds duration);
-    void                setColor(Color3D color) override;
-	void	            setContent(const std::string& content);
-    void                setCursorWidth(int width);
-    void                setFilter(InputFilter filter);
-    void                setLeftPadding(int padding);
+    void                setCursorWidth(float width);
+    void                setFieldText(TextProperties* textPtr);
+    void                setFilterPtr(UnicodeRangeVector* filterPtr);
+    void                setLeftPadding(float padding);
     void                setListener(TextInputListener callback);
-    void                setPosition(Vector2D position) override;
-	void                setPriority(int priority) override;
-	void                setSize(Vector2D size) override;
-    void                setText(TextProperties* properties) override;
-    void                setVerticalPadding(int padding);
-    void                setVisible(bool visible) override;
+    void                setPosition(Vector2D position)              override;
+	void                setPriority(int priority)                   override;
+	void                setSize(Vector2D size)                      override;
+    void                setVerticalPadding(float padding);
+    void                setVisible(bool visible)                    override;
 };
 
 }

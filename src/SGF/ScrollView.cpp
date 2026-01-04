@@ -1,95 +1,95 @@
 
 #include "SGF/ScrollView.hpp"
 
-void sgf::ScrollView::onSliderEvent(float value, int id, Canvas* canvas)
-{
-    sgf::Slider*        slider      = (sgf::Slider*)canvas->getRectangle(id);
-    sgf::ScrollView*    scrollView  = (sgf::ScrollView*)slider->getMetaPtr();
+using namespace sgf;
 
-// TODO: Make handle resizement automatic according to list height?
-    float offset = scrollView->getHeight() - scrollView->list.getHeight();
-    scrollView->list.setPosition({ 
-        scrollView->list.getX(),
-        scrollView->getY() + value * std::min(0.F, offset)
+void ScrollView::onSliderEvent(float value, int rectangleId, Canvas* canvasPtr)
+{
+    VSlider*    s   = (VSlider*)canvasPtr->getRectanglePtr(rectangleId);
+    ScrollView* v   = (ScrollView*)s->getMetaPtr();
+
+    /* Update the list position according to the slider value in such a way
+     * that makes the list aligned with bottom of the scroll view (background)
+     * when slider value is 1.0 and with the top if the value is 0.0 */
+    float maxOffset = std::min(0.0f, v->getHeight() - v->list.getHeight());
+    v->list.setPosition({ v->list.getX(), v->getY() + value * maxOffset });
+}
+
+ScrollView::ScrollView() :
+            Rectangle::Rectangle(),
+            list(),
+            slider()
+{
+    setSliderWidth(25.F);
+    
+    slider.setListener(ScrollView::onSliderEvent);
+    slider.setMetaPtr(this);
+}
+
+void ScrollView::copy(Rectangle* other)
+{
+    // Not implemented yet, there was no need ...
+    throw std::logic_error("ScrollView::copy is not implemented");
+}
+
+VList* ScrollView::getListPtr()
+{
+    return &list;
+}
+
+VSlider* ScrollView::getSliderPtr()
+{
+    return &slider;
+}
+
+void ScrollView::onAdd()
+{
+    getCanvasPtr()->add(&list);
+    getCanvasPtr()->add(&slider);
+}
+
+void ScrollView::onRemove()
+{
+    getCanvasPtr()->remove(&list);
+    getCanvasPtr()->remove(&slider);
+}
+
+void ScrollView::setPosition(Vector2D position)
+{
+    // First move the list and the slider according to the new view position
+    list.setPosition({
+        position.x + slider.getWidth(),
+        position.y + list.getY() - this->getY()
     });
-}
-
-sgf::ScrollView::ScrollView() :
-                       list(),
-                     slider()
-{
-    this->slider.setSliderListener(sgf::ScrollView::onSliderEvent);
-    
-    /* Adjust slider to defaults, and make the scroll view instance its metadata
-     * for sake of managing this instance's fields "remotely" from callback. */
-    this->setSliderWidth(25.F);
-    this->slider.setMetaPtr(this);
-}
-
-sgf::VList& sgf::ScrollView::getList()
-{
-    return this->list;
-}
-
-void sgf::ScrollView::onAdd()
-{
-    // Add other rectangle instances on canvas setting
-    this->getCanvasPtr()->add(list);
-    this->getCanvasPtr()->add(slider);
-}
-
-void sgf::ScrollView::setColor(sgf::Color3D color)
-{
-    sgf::Rectangle::setColor(color);
-    
-    // Slider color is some derivative of the area's
-	this->slider.setColor({ (sgf::Byte)(255 - color.r), color.g, (sgf::Byte)(255 - color.b) });
-}
-
-void sgf::ScrollView::setPosition(sgf::Vector2D position)
-{
-    // First move the list and the slider according to the new area's position
-    this->list.setPosition({ position.x + slider.getWidth(), list.getY() - getY() + position.y });
-    this->slider.setPosition(position);
+    slider.setPosition(position);
     
 	Rectangle::setPosition(position);
 }
 
-void sgf::ScrollView::setPriority(int priority)
+void ScrollView::setPriority(int priority)
 {
-    sgf::Rectangle::setPriority(priority);
-    
-    // List and slider priority is just above the area's
-    this->list.setPriority(priority);
-	this->slider.setPriority(priority);
+    Rectangle::  setPriority(priority);
+    list        .setPriority(priority + 1);
+	slider      .setPriority(priority + 1);
 }
 
-void sgf::ScrollView::setSize(sgf::Vector2D size)
+void ScrollView::setSize(Vector2D size)
 {
-    sgf::Rectangle::setSize(size);
-    
-    this->list.setSize({ getWidth() - slider.getWidth(), getHeight() });
-    this->slider.setSize({ slider.getWidth(), getHeight() });
+    Rectangle::  setSize(size);
+    list        .setSize({ this->getWidth() - slider.getWidth(), list.getHeight() });
+    slider      .setSize({ slider.getWidth(), this->getHeight() });
 }
 
-void sgf::ScrollView::setSliderWidth(float width)
+void ScrollView::setSliderWidth(float width)
 {
-    // List needs to be offset by slider width along X axis
-    this->list.setPosition({ getX() + width, getY() });
-    
-    this->slider.setSize({ width, getHeight() });
-}
-
-void sgf::ScrollView::setText(sgf::TextProperties* properties)
-{
-    // Ignore
+    // List needs to be offset by slider width horizontally axis
+    list    .setPosition({ this->getX() + width, this->getY() });
+    slider  .setSize({ width < 0.0f ? 0.0f : width, this->getHeight() });
 }
 
 void sgf::ScrollView::setVisible(bool visible)
 {
-    sgf::Rectangle::setVisible(visible);
-    
-    // List and slider visibility is dependant on area's
-    this->list.setVisible(visible);
-    this->slider.setVisible(visible);
+    Rectangle::  setVisible(visible);
+    list        .setVisible(visible);
+    slider      .setVisible(visible);
 }

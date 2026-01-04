@@ -4,6 +4,7 @@
 #ifndef _VLIST_HPP
 #define _VLIST_HPP
 
+#include <stdexcept>
 #include <vector>
 #include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
@@ -11,29 +12,27 @@
 namespace sgf
 {
 
-/* DESC */
-class VList : public Rectangle
+/* Features a vertical list that can organize inserted rectangle instances starting
+ * at top left corner of rectangle defining the list, in bottom direction.
+ * Notice that list neither does add rectangle instances to a canvas automatically
+ * nor removes them, it just organizes them nicely. */
+class VList final : public Rectangle
 {
 private:
-    void            updateBounds();
-    RectangleDeque  members;
-    RectangleDeque  toAdd;
+    std::vector<Rectangle*> memberPtrs;
 
 public:
     VList();
-    int         getCount() const;
-    Rectangle*  getMember(int index);
-    void        insert(int index, Rectangle* rect);
-    void        onAdd() override;
-    void        onRemove() override;
+    void        copy(Rectangle* other)                      override;
+    int         getCount()                                  const;
+    Rectangle*  getMemberPtr(int index);
+    void        insert(int index, Rectangle* rectanglePtr);
+    void        push(Rectangle* rectanglePtr);
     void        remove(int index);
-    void        remove(Rectangle* target);
-    void        setColor(Color3D color) override;
-    void        setPosition(Vector2D position) override;
-    void        setPriority(int priority) override;
-    void        setSize(Vector2D size) override;
-    void        setText(TextProperties* properties) override;
-    void        setVisible(bool visible) override;
+    void        remove(Rectangle* rectanglePtr);
+    void        setPosition(Vector2D position)              override;
+    void        setPriority(int priority)                   override;
+    void        setVisible(bool visible)                    override;
 };
 
 }

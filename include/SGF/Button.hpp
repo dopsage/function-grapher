@@ -17,7 +17,7 @@ class Button final : public Rectangle
 {
 private:
     bool        isMouseDown;
-	static void onButtonMouseEvent(MouseEvent event, Vector2D position, int id, Canvas* canvas);
+	static void onButtonMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr);
     
     /* The callback is invoked when the button receives mouse up event while the
      * mouse is in the buttons rectangular area. */

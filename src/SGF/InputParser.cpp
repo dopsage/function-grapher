@@ -31,16 +31,21 @@ void InputParser::parseSfmlEvent(const sf::Event& event)
 {
     switch(event.type)
     {
-		/* KeyPressed event provides all keys that are missing in TextEntered event.
-		 * In order to distinct one from another, first mentioned always passes negative
-		 * corresponding to some key code, while the second passes just the unicode
-		 * character code. Thus negatives shall be used for control, and positives for keys. */
+		/* The two events below allow an event receiver to process both key codes
+         * and unicode characters inputted. */
 		case sf::Event::KeyPressed:
+        {
+            if(keyboardReceiverPtr != nullptr)
+				keyboardReceiverPtr->onKeyboardInput((int)event.key.code, 0x00000000);
+            break;
+        }
         case sf::Event::TextEntered:
         {
 			if(keyboardReceiverPtr != nullptr)
-				keyboardReceiverPtr->onKeyboardInput(event.type == sf::Event::KeyPressed ?
-                (-1 * (int)event.key.code) : (event.text.unicode));
+				keyboardReceiverPtr->onKeyboardInput(
+                    (int)sf::Keyboard::Key::Unknown,
+                    static_cast<wchar_t>(event.text.unicode)
+                );
             break;
         }
         

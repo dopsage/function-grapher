@@ -34,12 +34,13 @@ void Button::copy(Rectangle* other)
 {
     Rectangle::copy(other);
     
-    // Rectangle::copy resets the mouse listener! it needs to return for the button
+    // Button copying resets its mouse listener, return it
     setMouseListener(Button::onButtonMouseEvent);
     
     // Assuming copying target is a button (it must be)
-    Button* b = (Button*)other;
-    setListener(b->getListener());
+    Button* ob = (Button*)other;
+    
+    setListener(ob->getListener());     // listener
 }
 
 ButtonListener Button::getListener() const

@@ -1,403 +1,379 @@
 
 #include "SGF/TextInput.hpp"
 
-const int sgf::TextInput::keyBackspace = -59;
-const int sgf::TextInput::keyLeftArrow = -71;
-const int sgf::TextInput::keyReturn = -58;
-const int sgf::TextInput::keyRightArrow = -72;
+using namespace sgf;
 
-bool sgf::TextInput::isAllowedByFilter(int unicode)
+const int TextInput::KEY_BACKSPACE      = (int)sf::Keyboard::Key::Backspace;
+const int TextInput::KEY_LEFT_ARROW     = (int)sf::Keyboard::Key::Left;
+const int TextInput::KEY_RETURN         = (int)sf::Keyboard::Key::Return;
+const int TextInput::KEY_RIGHT_ARROW    = (int)sf::Keyboard::Key::Right;
+
+void TextInput::onFieldKeyboardEvent(int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr)
 {
-    // If unicode character falls into allowed range, it is obviously allowed
-    for(const auto& range : *currentFilterPtr)
+	Rectangle*      f    = canvasPtr->getRectanglePtr(rectangleId);
+	TextInput*      ti   = (TextInput*)f->getMetaPtr();
+    TextProperties* text = f->getText();
+    
+	switch(keycode)
+	{
+		case TextInput::KEY_BACKSPACE:
+		{
+			// Erase a character at the cursor position and move the cursor to left
+			if(ti->cursorIndex > -1)
+			{
+				text->content.erase(ti->cursorIndex, 1);
+                text->length--;
+                text->refreshFlag = true;
+                
+                ti->cursorIndex--;
+			}
+			break;
+		}
+		case TextInput::KEY_LEFT_ARROW:
+		{
+			// Move the cursor to left (limit at -1)		
+			ti->cursorIndex = (ti->cursorIndex > -1) ? (ti->cursorIndex - 1) : (-1);
+            ti->updateCursorPosition();
+			break;
+		}
+		case TextInput::KEY_RETURN:
+		{
+			// Text input can be defocused
+			canvasPtr->getInputParserPtr()->setKeyboardReceiverPtr(nullptr);
+            ti->cursor.setVisible(false);
+            ti->focused = false;
+            
+            // Notify the listener about finished inputting
+            if(ti->listener != nullptr)
+                ti->listener(text->content, ti->getId(), canvasPtr);
+            
+			break;
+		}
+		case sgf::TextInput::KEY_RIGHT_ARROW:
+		{
+			// Move the cursor to right (limit to length-1)
+			ti->cursorIndex =   (ti->cursorIndex < text->length - 1) ?
+                                (ti->cursorIndex + 1) :
+                                (text->length - 1);
+            ti->updateCursorPosition();
+			break;
+		}
+        
+        default:
+        {
+            if(unicode && unicode != 0x00000008 && ti->isAllowedByFilter(unicode))
+            {
+                /* There is a unicode character inputted (not backspace), update
+                 * content at the cursor with it. */
+                text->content.insert(ti->cursorIndex + 1, 1, unicode);
+                text->length++;
+                text->refreshFlag = true;
+                
+                ti->cursorIndex++;
+            }
+    
+            break;
+        }
+	}
+    
+}
+
+void TextInput::onFieldMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr)
+{
+    Rectangle* f    = canvasPtr->getRectanglePtr(rectangleId);
+    TextInput* ti   = (TextInput*)f->getMetaPtr();
+ 
+    // No associated text, no further processing!
+    if(!f->isUsingText()) return;
+    
+    if(event == MouseEvent::DOWN)
+    {
+        ti->isFieldMouseDown = true;
+    }
+    else if( event == sgf::MouseEvent::UP                       &&
+             ti->isFieldMouseDown                               &&
+            !ti->isFocused()                                    &&
+             canvasPtr->getInputParserPtr()->isKeyboardFree()   &&
+             f->contains(position))
+    {
+        /* Text input can be focused. Before allowing user to input data, current
+         * text content needs to be sanitized, and cursor needs to be set up. */
+        ti->sanitizeContent();
+        ti->updateCursorPosition();
+        ti->cursor.setVisible(true);
+        ti->cursorIndex         = f->getText()->length - 1;
+        ti->isFieldMouseDown    = false;
+        ti->focused             = true;
+        
+        canvasPtr->getInputParserPtr()->setKeyboardReceiverPtr(&ti->field);
+    }
+}
+
+void TextInput::updateCursorPosition()
+{
+    /* If text content is scheduled to be refreshed, it may change character widths
+     * array which this method depends on. For safety reasons in such case method
+     * is canceled. Detection of text refreshal is done in onTick method (see it). */
+    if(!field.isUsingText() || field.getText()->refreshFlag) return;
+    
+    // Add character widths until the cursor position to get the horizontal shift
+    float shift = 0.0f;
+    for(int ci = 0; ci < cursorIndex + 1; ci++)
+        shift += field.getText()->characterWidths[ci];
+    
+    cursor.setPosition({
+        field.getX() + shift - cursor.getWidth(),
+        field.getY()
+    });
+}
+
+void TextInput::sanitizeContent()
+{
+    if(!field.isUsingText()) return;
+    
+    int             ci      = 0;
+    TextProperties* text    = field.getText();
+    while(ci < text->length)
+    {
+        if(!isAllowedByFilter(text->content[ci]))
+        {
+            /* This is an invalid character (as of the current filter), it needs
+             * to be erased, thus the loop needs to be delayed due to length change. */
+            text->content.erase(ci, 1);
+            text->length--;
+            text->refreshFlag = true;
+        }
+        else ci++;
+    }
+    
+    text->refreshFlag = true;
+}
+
+
+TextInput:: TextInput() :
+            Rectangle::Rectangle(),
+            cursor(),
+            cursorIndex(-1),
+            field(),
+            focused(false),
+            isFieldMouseDown(false),
+            lastBlinkTime(0)
+{
+    setBlinkDuration(250);      // blinkDuration
+    setCursorWidth(2);
+    setFieldText(nullptr);
+    setFilterPtr(&IF_ALL);      // filterPtr
+    setLeftPadding(0.0f);       // leftPadding
+    setListener(nullptr);       // listener
+    setVerticalPadding(0.0f);   // verticalPadding
+    
+    cursor.setVisible(false);
+    field.setKeyboardListener(TextInput::onFieldKeyboardEvent);
+    field.setMetaPtr(this);
+    field.setMouseListener(TextInput::onFieldMouseEvent);
+}
+
+void TextInput::copy(Rectangle* other)
+{
+    Rectangle::copy(other);
+    
+    /* Assuming copying target is a text input (it must be).
+     * Copying cursor and field resets important data, which must be restored afterwards.
+     * The instance fields are copied lastly. */
+    TextInput* oti = (TextInput*)other;
+    
+    cursor  .copy(oti->getCursorPtr());                             // cursor
+    cursor  .setVisible(false);
+    
+    field   .copy(oti->getFieldPtr());                              // field
+    field   .setKeyboardListener(TextInput::onFieldKeyboardEvent);
+    field   .setMetaPtr(this);
+    field   .setMouseListener(TextInput::onFieldMouseEvent);
+    
+    setBlinkDuration    (oti->getBlinkDuration());                  // blinkDuration
+    setCursorWidth      (oti->getCursorPtr()->getWidth());
+    setFieldText        (oti->getFieldPtr()->getText());
+    setFilterPtr        (oti->getFilterPtr());                      // filterPtr
+    setLeftPadding      (oti->getLeftPadding());                    // leftPadding
+    setListener         (oti->getListener());                       // listener
+    setVerticalPadding  (oti->getVerticalPadding());                // verticalPadding
+}
+
+Milliseconds TextInput::getBlinkDuration() const
+{
+    return blinkDuration;
+}
+
+Rectangle* TextInput::getCursorPtr()
+{
+    return &cursor;
+}
+
+Rectangle* TextInput::getFieldPtr()
+{
+    return &field;
+}
+
+UnicodeRangeVector* TextInput::getFilterPtr()
+{
+    return filterPtr;
+}
+
+int TextInput::getLeftPadding() const
+{
+    return leftPadding;
+}
+
+TextInputListener TextInput::getListener() const
+{
+    return listener;
+}
+
+int TextInput::getVerticalPadding() const
+{
+    return verticalPadding;
+}
+
+bool TextInput::isAllowedByFilter(wchar_t unicode) const
+{
+    // If unicode falls into allowed range, stop and declare allowance
+    for(std::pair<wchar_t, wchar_t> range : *filterPtr)
         if(unicode >= range.first && unicode <= range.second)
             return true;
 
     return false;
 }
 
-void sgf::TextInput::onFieldKeyboardEvent(int data, int id, sgf::Canvas* canvas)
+bool TextInput::isFocused() const
 {
-	// Assume metadata of the field instance is set to the parenting text input instance
-	sgf::Rectangle* field = canvas->getRectangle(id);
-	sgf::TextInput* input = (sgf::TextInput*)field->getMetaPtr();
-    
-    int oldCursorIndex  = input->cursorIndex;
-    int oldTextWidth    = field->getText()->width;
-    
-	switch(data)
-	{
-		case sgf::TextInput::keyBackspace:
-		{
-			// Field received backspace, remove last character from the current input text
-			if(input->cursorIndex > -1)
-			{
-				std::string updated = std::string(*input->getContent());
-				updated.erase(input->cursorIndex, 1);
-				input->setContent(updated);
-                input->cursorIndex--;
-			}
-			break;
-		}
-		case sgf::TextInput::keyLeftArrow:
-		{
-			// Field received left arrow, move cursor by one to left (limit to -1)		
-			input->cursorIndex = (input->cursorIndex > -1) ? (input->cursorIndex - 1) : (-1);
-			break;
-		}
-		case sgf::TextInput::keyReturn:
-		{
-			// Field received carriage return, finish its listening of keyboard (deselect)
-			canvas->getInputParser().setKeyboardReceiver(nullptr);
-            
-            // Hide cursor and deselect
-            input->cursor.setVisible(false);
-            input->isSelected = false;
-            
-            // Invoke the listener
-            if(input->listener != nullptr)
-                input->listener(*input->getContent(), input->getId(), canvas);
-            
-			break;
-		}
-		case sgf::TextInput::keyRightArrow:
-		{
-			// Field received right arrow, move cursor by one to right (limit to length-1)
-            int inputLength = (int)input->getContent()->length();
-			input->cursorIndex = (input->cursorIndex < inputLength - 1) ?
-                                 (input->cursorIndex + 1) :
-                                 (inputLength - 1);
-			break;
-		}
-		default:
-		{
-			if(input->isAllowedByFilter(data))
-			{
-				// Field received some other unicode, insert it into content string
-				std::string updated = std::string(*input->getContent());
-                
-/* This is dangerous because it assumes `data` is ASCII character while it is
- * a unicode. There will be data corruption if unicode is allowed by filter! */
-				updated.insert(input->cursorIndex + 1, 1, (char)data);
-                
-				input->setContent(updated);
-				input->cursorIndex++;
-            }
-			break;
-		}
-	}
-    
-
-    // Update text character sizes vector, basing on the text width change and cursor position
-    int textWidthDelta = field->getText()->width - oldTextWidth;
-         if(textWidthDelta < 0) input->textCharSizes.erase (input->textCharSizes.begin() + input->cursorIndex + 1);
-    else if(textWidthDelta > 0) input->textCharSizes.insert(input->textCharSizes.begin() + input->cursorIndex, textWidthDelta);
-    if(textWidthDelta || (input->cursorIndex != oldCursorIndex))
-        input->updateCursor();
+    return focused;
 }
 
-void sgf::TextInput::onFieldMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, int id, sgf::Canvas* canvas)
+void TextInput::onAdd()
 {
-    // Clicking mechanic works is really similar to the one defined for Slider
+    Rectangle::onAdd();
     
-    sgf::Rectangle* field = canvas->getRectangle(id);
-    sgf::TextInput* input = (sgf::TextInput*)field->getMetaPtr();
+    getCanvasPtr()->add(&cursor);
+    getCanvasPtr()->add(&field);
+}
+
+void TextInput::onRemove()
+{
+    Rectangle::onRemove();
     
-    if(event == sgf::MouseEvent::DOWN)
+    // Before removal, field should be defocused from keyboard to free it
+    if(focused) getCanvasPtr()->getInputParserPtr()->setKeyboardReceiverPtr(nullptr);
+    
+    getCanvasPtr()->remove(&cursor);
+    getCanvasPtr()->remove(&field);
+}
+
+void TextInput::onTick(int tickCount)
+{
+    // There is no point in blinking logic if text input is hidden or not focused
+    if(!field.isUsingText() || !isVisible() || !focused) return;
+    
+    // SR latch using metadata storage in order to update cursor after text refreshes 
+         if( field.getText()->refreshFlag && cursor.getMetaPtr() == nullptr)
     {
-        input->isFieldMouseDown = true;
+        cursor.setMetaPtr((void*)0x14052025);
     }
-    else if(!input->isSelected && canvas->getInputParser().isKeyboardFree() && input->isFieldMouseDown && event == sgf::MouseEvent::UP && field->contains(position))
+    else if(!field.getText()->refreshFlag && cursor.getMetaPtr() != nullptr)
     {
-        // Ensure safety of the text content according to the current input filter
-        std::string currContent     = std::string(*input->getContent());
-        bool        alteredContent  = false;
-        int         i               = 0;
-        while(i < currContent.length())
+        updateCursorPosition();
+        cursor.setMetaPtr(nullptr);
+    }
+    
+    // Do the cursor blinking
+    if(blinkDuration > 0)
+    {
+        Milliseconds currentTime = getCanvasPtr()->getElapsedTime();
+        if(currentTime - lastBlinkTime >= blinkDuration)
         {
-            if(!input->isAllowedByFilter(currContent[i]))
-            {
-                /* This is an invalid character (as of the current filter), it needs
-                 * to be erased, and thus whole loop needs to start over due to size change. */
-                currContent.erase(currContent.begin() + i);
-                alteredContent = true;
-                i = 0;
-            }
-            else i++;
+            cursor.setVisible(!cursor.isVisible());
+            lastBlinkTime = currentTime;
         }
-        if(alteredContent)
-            input->setContent(currContent);
-        
-        /* Field got clicked on, set it as keyboard listener (select).
-         * Do not forget about resetting cursor position to the end of the input. */
-        input->cursorIndex = input->getContent()->length() - 1;
-        canvas->getInputParser().setKeyboardReceiver(field);
-        
-        // Show select and show cursor
-        input->cursor.setVisible(true);
-        input->isSelected = true;
-        input->updateCursor();
-        
-        input->isFieldMouseDown = false;
     }
+    else if(isVisible() && !cursor.isVisible())
+        cursor.setVisible(true);
 }
 
-void sgf::TextInput::updateCursor()
+void TextInput::setBlinkDuration(Milliseconds duration)
 {
-    if(!isSelected) return;
+    blinkDuration = duration;
+}
+
+void TextInput::setCursorWidth(float width)
+{
+    cursor.setSize({ width < 0.0f ? 0.0f : width, cursor.getHeight() });
+}
+
+void TextInput::setFieldText(TextProperties* textPtr)
+{
+    field.setText(textPtr);
+}
+
+void TextInput::setFilterPtr(UnicodeRangeVector* filterPtr)
+{
+    this->filterPtr = filterPtr;
+}
+
+void TextInput::setLeftPadding(float padding)
+{
+    leftPadding = padding;
     
-    int currTextSize = field.getText()->size;
-    if(lastTextSize != currTextSize)
-    {
-        /* Character size property has been changed, thus the whole text needs to
-         * be re-inputted in order to fill character sizes array with appropriate
-         * new sizes. This is not the best solution but it is logical. */
-        int         oldCursorIndex = cursorIndex;
-        std::string oldContent     = std::string(*this->getContent());
-        cursorIndex  = -1;
-        lastTextSize = currTextSize;
-        textCharSizes.clear();
-        setContent("");
-        
-        for(int i = 0; i < oldContent.size(); i++)
-            sgf::TextInput::onFieldKeyboardEvent((int)oldContent[i], field.getId(), getCanvasPtr());
-        
-        /* In the end, the method needs to call itself again in order to return
-         * the cursor back to its original position, after re-inputting. */
-        cursorIndex  = oldCursorIndex;
-        updateCursor();
-    }
+    // Reseting position and size to the same value triggers recalculation of cursor and field
+    setPosition (getPosition());
+    setSize     (getSize());
+}
+
+void TextInput::setListener(TextInputListener callback)
+{
+    listener = callback;
+}
+
+void TextInput::setPosition(Vector2D position)
+{
+    Rectangle::setPosition(position);
     
-    // Add character positions until the cursor position to get the X shift
-    int xShift = 0;
-    for(int i = 0; i < this->cursorIndex + 1; i++)
-        xShift += this->textCharSizes[i];
+    field.setPosition({
+        this->getX() + leftPadding,
+        this->getY() + verticalPadding
+    });
+    updateCursorPosition();
+}
+
+void TextInput::setPriority(int priority)
+{
+    sgf::Rectangle:: setPriority(priority);
+    cursor          .setPriority(priority + 2);
+    field           .setPriority(priority + 1);
+}
+
+void TextInput::setSize(Vector2D size)
+{
+    Rectangle::setSize(size);
     
-    this->cursor.setSize({ cursor.getWidth(), field.getHeight() });
-    this->cursor.setPosition({ field.getX() + xShift - cursor.getWidth(), field.getY() });
+    float fieldHeight = this->getHeight() - 2 * verticalPadding;
+    cursor  .setSize({ cursor.getWidth(), fieldHeight });
+    field   .setSize({ this->getWidth() - leftPadding, fieldHeight });
 }
 
-sgf::TextInput::TextInput() :
-            blinkDuration(0),
-                   cursor(),
-            currentFilter(sgf::InputFilter::BYTE),
-         currentFilterPtr(&sgf::IF_BYTE),
-			  cursorIndex(-1),
-                    field(),
-         isFieldMouseDown(false),
-               isSelected(false),
-            lastBlinkTime(0),
-             lastTextSize(0),
-                  leftPad(0.F),
-                 listener(nullptr),
-            textCharSizes(),
-                  vertPad(0.F)
+void TextInput::setVerticalPadding(float padding)
 {
-    this->field.setKeyboardListener(sgf::TextInput::onFieldKeyboardEvent);
-    this->field.setMouseListener(sgf::TextInput::onFieldMouseEvent);
+    verticalPadding = padding;
     
-    /* Adjust field and cursor to defaults, and make the text input instance field's
-     * metadata for sake of its callbacks set above. */
-    this->setBlinkDuration(250);
-    this->setCursorWidth(2);
-    this->field.setMetaPtr(this);
+    // Again like in setting the left padding, reset transformations to trigger recalculations
+    setPosition(getPosition());
+    setSize(getSize());
 }
 
-void sgf::TextInput::copy(sgf::Rectangle* other)
+void TextInput::setVisible(bool visible)
 {
-    sgf::Rectangle::copy(other);
+    Rectangle::setVisible(visible);
     
-// Assuming that developers are well slept ...
-    sgf::TextInput* tiOther = (sgf::TextInput*)other;
+    // You cannot show cursor together with the text input, but you can hide it
+    if(!visible) cursor.setVisible(false);
     
-    cursor  .copy(&tiOther->getCursor());
-    field   .copy(&tiOther->getField());
-    field   .setMetaPtr(this);  // If left this job for copy(), it would use the `other` instead of this!
-    
-    setBlinkDuration    (tiOther->getBlinkDuration());
-    setContent          (*tiOther->getContent());
-    setCursorWidth      (tiOther->getCursorWidth());
-    setFilter           (tiOther->getFilter());
-    setLeftPadding      (tiOther->getLeftPadding());
-    setListener         (tiOther->getListener());
-    setVerticalPadding  (tiOther->getVerticalPadding());
-}
-
-sgf::Milliseconds sgf::TextInput::getBlinkDuration() const
-{
-    return blinkDuration;
-}
-
-const std::string* sgf::TextInput::getContent()
-{
-	return &field.getText()->content;
-}
-
-sgf::Rectangle& sgf::TextInput::getCursor()
-{
-    return cursor;
-}
-
-int sgf::TextInput::getCursorWidth() const
-{
-    return cursor.getWidth();
-}
-
-sgf::Rectangle& sgf::TextInput::getField()
-{
-    return this->field;
-}
-
-sgf::InputFilter sgf::TextInput::getFilter()
-{
-    return this->currentFilter;
-}
-
-int sgf::TextInput::getLeftPadding() const
-{
-    return this->leftPad;
-}
-
-sgf::TextInputListener sgf::TextInput::getListener() const
-{
-    return listener;
-}
-
-sgf::TextProperties* sgf::TextInput::getText()
-{
-    return nullptr;
-}
-
-int sgf::TextInput::getVerticalPadding() const
-{
-    return this->vertPad;
-}
-
-void sgf::TextInput::onAdd()
-{
-    // Add other rectangle instances on canvas setting
-    this->getCanvasPtr()->add(field);
-    this->getCanvasPtr()->add(cursor);
-}
-
-void sgf::TextInput::onRemove()
-{
-    // Deselect before!
-    if(isSelected)
-        getCanvasPtr()->getInputParser().setKeyboardReceiver(nullptr);
-    
-    getCanvasPtr()->remove(field);
-    getCanvasPtr()->remove(cursor);
-}
-
-void sgf::TextInput::onTick(int tickIndex)
-{
-    // Perform the cursor blinking
-    sgf::Milliseconds currTime = getCanvasPtr()->getElapsedTime();
-    if(isSelected && currTime - lastBlinkTime >= blinkDuration)
-    {
-        cursor.setVisible(!cursor.isVisible());
-        lastBlinkTime = currTime;
-    }
-}
-
-void sgf::TextInput::setBlinkDuration(Milliseconds duration)
-{
-    this->blinkDuration = duration;
-}
-
-void sgf::TextInput::setColor(sgf::Color3D color)
-{
-    sgf::Rectangle::setColor(color);
-}
-
-void sgf::TextInput::setContent(const std::string& content)
-{
-    // Set just the content field of the set text properties
-	field.getText()->content = content;
-	field.updateText();
-}
-
-void sgf::TextInput::setCursorWidth(int width)
-{
-    this->cursor.setSize({ (float)width, cursor.getHeight() });
-}
-
-void sgf::TextInput::setFilter(sgf::InputFilter filter)
-{
-    switch(this->currentFilter = filter)
-    {
-    case sgf::InputFilter::BYTE:
-        this->currentFilterPtr = &sgf::IF_BYTE;
-        break;
-    case sgf::InputFilter::MATH:
-        this->currentFilterPtr = &sgf::IF_MATH;
-        break;
-    }
-}
-
-void sgf::TextInput::setLeftPadding(int padding)
-{
-    this->leftPad = padding;
-    
-    // Refresh position & size
-    this->setPosition(this->getPosition());
-    this->setSize(this->getSize());
-}
-
-void sgf::TextInput::setListener(TextInputListener callback)
-{
-    this->listener = callback;
-}
-
-void sgf::TextInput::setPosition(sgf::Vector2D position)
-{
-    sgf::Rectangle::setPosition(position);
-    this->field.setPosition({ getX() + this->leftPad, getY() + this->vertPad });
-    this->updateCursor();
-}
-
-void sgf::TextInput::setPriority(int priority)
-{
-    sgf::Rectangle::setPriority(priority);
-    this->field.setPriority(priority);
-    this->cursor.setPriority(priority);
-}
-
-void sgf::TextInput::setSize(sgf::Vector2D size)
-{
-    sgf::Rectangle::setSize(size);
-    
-    this->field.setSize({ getWidth() - this->leftPad, getHeight() - 2 * this->vertPad });
-    
-    // Update size of the field text, if it is existent
-    if(this->field.isUsingText())
-    {
-        field.getText()->size = field.getHeight();
-        field.updateText();
-    }
-}
-
-void sgf::TextInput::setText(sgf::TextProperties* properties)
-{
-    // Ignore
-}
-
-void sgf::TextInput::setVerticalPadding(int padding)
-{
-    this->vertPad = padding;
-    
-    // Refresh position & size
-    this->setPosition(this->getPosition());
-    this->setSize(this->getSize()); 
-}
-
-void sgf::TextInput::setVisible(bool visible)
-{
-    sgf::Rectangle::setVisible(visible);
-    
-    this->field.setVisible(visible);
-    
-    // Normally, you cannot show cursor together with the text input, but you can hide it
-    if(!visible) this->cursor.setVisible(false);
+    field.setVisible(visible);
 }

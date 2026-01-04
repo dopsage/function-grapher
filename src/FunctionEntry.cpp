@@ -1,134 +1,106 @@
 
 #include "FunctionEntry.hpp"
 
-void FunctionEntry::onButtonEvent(int id, sgf::Canvas* canvas)
+using namespace sgf;
+
+FunctionEntry:: FunctionEntry() :
+                Rectangle::Rectangle(),
+                button(),
+                input()
 {
-    FunctionEntry* feEntry = (FunctionEntry*)canvas->getRectangle(id)->getMetaPtr();
-    
-    if(feEntry->parentList != nullptr)
-    {
-        feEntry->parentList->remove((Rectangle*)feEntry);
-    }
-        
+    setButtonListener(nullptr);
+    setButtonWidth(50.0f);
 }
 
-FunctionEntry::FunctionEntry() :
-                      button(),
-                       input(),
-                  parentList(nullptr)
+void FunctionEntry::copy(Rectangle* other)
 {
-    button.setButtonListener(FunctionEntry::onButtonEvent);
-    button.setMetaPtr(this);
+    Rectangle::copy(other);
+    
+    /* Assuming copying target is a function entry (it must be).
+     * The instance fields are copied lastly. */
+    FunctionEntry* ofe = (FunctionEntry*)other;
+    
+    button  .copy(ofe->getButtonPtr());
+    input   .copy(ofe->getTextInputPtr());
+    
+    setButtonListener   (ofe->getButtonPtr()->getListener());
+    setButtonWidth      (ofe->getButtonPtr()->getWidth());
 }
 
-void FunctionEntry::copy(sgf::Rectangle* other)
-{
-    sgf::Rectangle::copy(other);
-    
-// Assuming that developers are well slept ...
-    FunctionEntry* feOther = (FunctionEntry*)other;
-    
-    button  .copy(&feOther->getButton());
-    button  .setMetaPtr(this); // This is necessary!
-    input   .copy(&feOther->getTextInput());
-    
-    setParentList(&feOther->getParentList());
-}
-
-FunctionData FunctionEntry::getData() const
+FunctionData FunctionEntry::getFunctionData() const
 {
     return { "Lun", [](float x) { return x * x; } };
 }
 
-sgf::VList& FunctionEntry::getParentList()
+Button* FunctionEntry::getButtonPtr()
 {
-    return *parentList;
+    return &button;
 }
 
-sgf::TextProperties* FunctionEntry::getText()
+TextInput* FunctionEntry::getTextInputPtr()
 {
-    return nullptr;
-}
-
-sgf::Button& FunctionEntry::getButton()
-{
-    return this->button;
-}
-
-sgf::TextInput& FunctionEntry::getTextInput()
-{
-    return this->input;
-}
-
-bool FunctionEntry::isValid() const
-{
-    return true;
+    return &input;
 }
 
 void FunctionEntry::onAdd()
 {
-    getCanvasPtr()->add(button);
-    getCanvasPtr()->add(input);
+    getCanvasPtr()->add(&button);
+    getCanvasPtr()->add(&input);
 }
 
 void FunctionEntry::onRemove()
 {
-    getCanvasPtr()->remove(button);
-    getCanvasPtr()->remove(input);
+    getCanvasPtr()->remove(&button);
+    getCanvasPtr()->remove(&input);
 }
 
-void FunctionEntry::setColor(sgf::Color3D color)
+void FunctionEntry::setButtonListener(sgf::ButtonListener listener)
 {
-    sgf::Rectangle::setColor(color);
+    button.setListener(listener);
 }
 
-// NOTICE: THIS IS ONLY FOR THIS CLASS, YOU STILL NEED TO ADD ENTRY TO VLIST MANUALLY
-void FunctionEntry::setParentList(sgf::VList* list)
+void FunctionEntry::setButtonWidth(float width)
 {
-    this->parentList = list;
+    button.setSize({ width < 0.0f ? 0.0f : width, button.getHeight() });
 }
 
-void FunctionEntry::setPosition(sgf::Vector2D position)
+void FunctionEntry::setPosition(Vector2D position)
 {
     button.setPosition({
-		button.getX() - getX() + position.x,
-		button.getY() - getY() + position.y,
+		button.getX() - this->getX() + position.x,
+		button.getY() - this->getY() + position.y,
 	});
     input.setPosition({
-		input.getX() - getX() + position.x,
-		input.getY() - getY() + position.y,
+		input.getX() - this->getX() + position.x,
+		input.getY() - this->getY() + position.y,
 	});
     
-	sgf::Rectangle::setPosition(position);
+	Rectangle::setPosition(position);
 }
 
 void FunctionEntry::setPriority(int priority)
 {
-    sgf::Rectangle::setPriority(priority);
-    
-	button.setPriority(priority);
-    input.setPriority(priority);
+    Rectangle::  setPriority(priority);
+	button      .setPriority(priority + 1);
+    input       .setPriority(priority + 1);
 }
 
-void FunctionEntry::setSize(sgf::Vector2D size)
+void FunctionEntry::setSize(Vector2D size)
 {
-    sgf::Rectangle::setSize(size);
+    Rectangle::setSize(size);
 
-// Proportions needs commonization!
-    button.setPosition({ getX() + getWidth() * 0.8F, getY() });
-    button.setSize({ getWidth() * 0.2F, getHeight() });
-    input.setSize({ getWidth() * 0.8F, getHeight() });
-}
-
-void FunctionEntry::setText(sgf::TextProperties* properties)
-{
-    // Ignore
+    // Button is always on the right to the text input, they stick together
+    button  .setPosition({
+        this->getX() + this->getWidth() - button.getWidth(),
+        this->getY()
+    });
+    button  .setSize({ button.getWidth(), this->getHeight() });
+    input   .setSize({ this->getWidth() - button.getWidth(), this->getHeight() });
 }
 
 void FunctionEntry::setVisible(bool visible)
 {
-    sgf::Rectangle::setVisible(visible);
-    
-    button.setVisible(visible);
-    input.setVisible(visible);
+    Rectangle::  setVisible(visible);
+    button      .setVisible(visible);
+    input       .setVisible(visible);
 }

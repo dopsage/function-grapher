@@ -12,6 +12,7 @@ find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 set(PROJECT_EXEC function_grapher)
 add_executable(
     ${PROJECT_EXEC}
+    src/Application.cpp
     src/Main.cpp
     src/SGF/Button.cpp
     src/SGF/Canvas.cpp

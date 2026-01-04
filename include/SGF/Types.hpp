@@ -53,11 +53,9 @@ namespace sgf
         {0x00000061, 0x0000007A}    // a-z
     };
     
-    enum class MouseEvent { DOWN, MOVE, UP };
-    
-    struct Vector2D { float x, y; };
-
-    struct Color3D  { Byte r, g, b; };
+    enum class  MouseEvent  { DOWN, MOVE, UP };
+    struct      Vector2D    { float x, y; };
+    struct      Color3D     { Byte r, g, b; };
     
     typedef void (*ButtonListener)      (int rectangleId, Canvas* canvasPtr);
     typedef void (*KeyboardListener)    (int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr);

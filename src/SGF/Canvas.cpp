@@ -13,6 +13,7 @@ Milliseconds Canvas::getEpochTime() const
 
 Canvas::Canvas() :
         constructionTime(getEpochTime()),
+        context(),
         inputParser(),
         active(true),
         rectanglePtrs(),
@@ -21,7 +22,8 @@ Canvas::Canvas() :
         sfmlWindow(sf::VideoMode(1, 1), "", sf::Style::Titlebar | sf::Style::Close),
         tickCount(0)
 {
-    inputParser.setRectanglesSourcePtr(&rectanglePtrs);    // Initialize input parser
+    context.sfmlWindowPtr = &sfmlWindow;                // Initialize drawing context
+    inputParser.setRectanglesSourcePtr(&rectanglePtrs); // Initialize input parser
     
     sfmlFont.loadFromFile(Canvas::RES_FONT_FILE);       // Load font resource
     
@@ -63,6 +65,11 @@ void sgf::Canvas::add(Rectangle* rectanglePtr)
     rectanglePtr->canvasPtr = this;
     rectanglePtr->id        = index;
     rectanglePtr->onAdd();
+}
+
+Context* Canvas::getContextPtr()
+{
+    return &context;
 }
 
 int Canvas::getDrawingRate() const
@@ -236,7 +243,7 @@ bool Canvas::tick()
         
         if(!r->isVisible()) continue;
         
-        sfmlWindow.draw(r->sfmlRect);
+        sfmlWindow.draw(r->sfmlRect);   // 1. Draw SFML shape
         
         if(r->isUsingText())
         {
@@ -271,7 +278,7 @@ bool Canvas::tick()
                 setFlags.push_back(&rtp->refreshFlag);
             }
             
-            sfmlWindow.draw(rectangleTexts[rid]);
+            sfmlWindow.draw(rectangleTexts[rid]);   // 2. Draw SFML text (optionally)
         }
         else if(rectangleTexts.find(r->getId()) != rectangleTexts.end())
         {
@@ -279,6 +286,8 @@ bool Canvas::tick()
              * its usage, therefore destroy the text. */
              rectangleTexts.erase(r->getId());
         }
+        
+        r->onContextUse(&this->context);    // 3. Perform custom drawing in SFML window
     }
     
     // Reset the refresh flags of the used text properties

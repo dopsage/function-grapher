@@ -10,6 +10,7 @@
 namespace sgf
 {
 
+/* DESC */
 struct TextProperties
 {
     // Constant

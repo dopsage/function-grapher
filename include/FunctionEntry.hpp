@@ -15,6 +15,7 @@ struct FunctionData
     float (*definition)(float);
 };
 
+/* DESC */
 class FunctionEntry : public sgf::Rectangle
 {
 private:

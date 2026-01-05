@@ -21,6 +21,7 @@ namespace sgf
     
     class   Button;
     class   Canvas;
+    class   Context;
     class   InputParser;
     class   Rectangle;
     class   ScrollView;
@@ -58,6 +59,7 @@ namespace sgf
     struct      Color3D     { Byte r, g, b; };
     
     typedef void (*ButtonListener)      (int rectangleId, Canvas* canvasPtr);
+    typedef void (*ContextListener)     (Context* contextPtr, int rectangleId, Canvas* canvasPtr);
     typedef void (*KeyboardListener)    (int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr);
     typedef void (*MouseListener)       (MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr);
     typedef void (*VSliderListener)     (float value, int rectangleId, Canvas* canvasPtr);

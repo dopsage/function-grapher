@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include "SFML/Graphics.hpp"
+#include "SGF/Context.hpp"
 #include "SGF/InputParser.hpp"
 #include "SGF/Rectangle.hpp"
 #include "SGF/TextProperties.hpp"
@@ -24,6 +25,7 @@ class Canvas final
 {
 private:
     Milliseconds                        constructionTime;
+    Context                             context;
     int                                 drawingRate;
     static const std::string            RES_FONT_FILE;
     Milliseconds                        getEpochTime() const;
@@ -41,6 +43,7 @@ private:
 public:
     Canvas();
     void                add(Rectangle* rectanglePtr);
+    Context*            getContextPtr();
     int                 getDrawingRate()                    const;
     Milliseconds        getElapsedTime()                    const;
     float 		        getHeight()                         const;

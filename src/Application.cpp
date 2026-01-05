@@ -131,6 +131,19 @@ void Application::configureInstances()
     fePrefab.getTextInputPtr()->setVerticalPadding  (V_TEXT_INPUT_PADDING.y);
     fePrefab.getTextInputPtr()->getCursorPtr()->setColor(C_BLACK);
     fePrefab.getTextInputPtr()->getFieldPtr()->setColor (C_RED);
+    
+    // Test of custom look using context graphics, each prefab instance will do the same!
+    fePrefab.getTextInputPtr()->getFieldPtr()->setContextListener([](sgf::Context* contextPtr, int rectangleId, sgf::Canvas* canvasPtr)
+    {
+        sgf::Rectangle* r = (sgf::Rectangle*)canvasPtr->getRectanglePtr(rectangleId);
+        
+        contextPtr->line(
+            r->getPosition(),
+            { r->getX() + r->getWidth(), r->getY() + r->getHeight() },
+            C_WHITE,
+            rectangleId % 8 + 1
+        );
+    });
 
     // Graph view background (rectangle)
     rGraphBackground.setColor   (C_WHITE);
@@ -210,7 +223,9 @@ int Application::run()
     canvas.add(&bResetGraph);
     canvas.add(&bZoomIn);
     canvas.add(&bZoomOut);
+    
     canvas.add(&rGraphBackground);
+    
     canvas.add(&rStatusBackground);
     canvas.add(&rMousePosition);
     canvas.add(&rZoom);
@@ -221,7 +236,10 @@ int Application::run()
     for(int i = 0; i < 10; i++)
         bAddEntry.getListener()(bAddEntry.getId(), &canvas);
     
-    while(canvas.isActive() && canvas.tick());
+    while(canvas.isActive() && canvas.tick())
+    {
+        
+    }
     
     return 0;
 }

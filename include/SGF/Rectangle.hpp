@@ -26,6 +26,7 @@ private:
     bool                added;
     Canvas*             canvasPtr;
 	Color3D	            color;
+    ContextListener     contextListener;
     int                 id;
     KeyboardListener    keyboardListener;
     MouseListener       mouseListener;
@@ -44,6 +45,7 @@ public:
     virtual void            copy(Rectangle* other);
     Canvas*                 getCanvasPtr();
 	Color3D	                getColor()                  const;
+    ContextListener         getContextListener()        const;
     float                   getHeight()                 const;
     int                     getId()                     const;
     KeyboardListener        getKeyboardListener()       const;
@@ -60,7 +62,10 @@ public:
     bool                    isUsingText()               const;
     bool                    isVisible()                 const;
     
-    // These two methods invoke keyboard and mouse listeners with given parameters
+    /* These methods invoke set listeners, and can be used for their emulation.
+     * Just saying: canvas calls onContextUse every frame in appropriate moment,
+     *              so its emulation is of no use anyways. */
+    void                    onContextUse(Context* contextPtr);
     void                    onKeyboardInput(int keycode, wchar_t unicode);
     void                    onMouseInput(MouseEvent event, Vector2D position);
     
@@ -70,6 +75,7 @@ public:
     virtual void            setColor(Color3D color);
     
     // Rectangle can store only one callback method per device, did not see reason for not doing so
+    void                    setContextListener(ContextListener callback);
     void                    setKeyboardListener(KeyboardListener callback);
     void                    setMouseListener(MouseListener callback);
     

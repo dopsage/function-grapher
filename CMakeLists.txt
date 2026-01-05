@@ -13,15 +13,16 @@ set(PROJECT_EXEC function_grapher)
 add_executable(
     ${PROJECT_EXEC}
     src/Application.cpp
+    src/FunctionEntry.cpp
     src/Main.cpp
     src/SGF/Button.cpp
     src/SGF/Canvas.cpp
+    src/SGF/Context.cpp
     src/SGF/InputParser.cpp
     src/SGF/Rectangle.cpp
     src/SGF/ScrollView.cpp
     src/SGF/TextInput.cpp
     src/SGF/TextProperties.cpp
-    src/FunctionEntry.cpp
     src/SGF/VList.cpp
     src/SGF/VSlider.cpp
 )

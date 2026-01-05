@@ -1,4 +1,5 @@
 
+#include "SGF/Canvas.hpp"   // Included in this file to prevent inclusion loop with Canvas module
 #include "SGF/Rectangle.hpp"
 
 using namespace sgf;
@@ -11,6 +12,7 @@ Rectangle:: Rectangle() :
             textPtr(nullptr)
 {
     setColor({0,0,0});              // color
+    setContextListener(nullptr);    // contextListener
     setKeyboardListener(nullptr);   // keyboardListener
     setMouseListener(nullptr);      // mouseListener
     setMetaPtr(nullptr);            // metaPtr
@@ -37,6 +39,7 @@ bool Rectangle::contains(Vector2D position) const
 void Rectangle::copy(Rectangle* other)
 {
     setColor            (other->getColor());
+    setContextListener  (other->getContextListener());
     setKeyboardListener (other->getKeyboardListener());
     setMouseListener    (other->getMouseListener());
     setMetaPtr          (other->getMetaPtr());
@@ -55,6 +58,11 @@ Canvas* Rectangle::getCanvasPtr()
 Color3D Rectangle::getColor() const
 {
 	return color;
+}
+
+ContextListener Rectangle::getContextListener() const
+{
+    return contextListener;
 }
 
 float Rectangle::getHeight() const
@@ -132,6 +140,12 @@ bool Rectangle::isVisible() const
     return visible;
 }
 
+void Rectangle::onContextUse(Context* contextPtr)
+{
+    if(visible && contextListener != nullptr)
+        contextListener(contextPtr, id, canvasPtr);
+}
+
 void Rectangle::onKeyboardInput(int keycode, wchar_t unicode)
 {
     if(visible && keyboardListener != nullptr)
@@ -164,6 +178,11 @@ void Rectangle::setColor(Color3D color)
 	this->color = color;
     
 	sfmlRect.setFillColor(sf::Color(color.r, color.g, color.b));
+}
+
+void Rectangle::setContextListener(ContextListener callback)
+{
+    contextListener = callback;
 }
 
 void Rectangle::setKeyboardListener(KeyboardListener callback)

@@ -22,6 +22,8 @@ namespace sgf
     class   Button;
     class   Canvas;
     class   Context;
+    class   FunctionGrapher;
+    class   FunctionProperties;
     class   InputParser;
     class   Rectangle;
     class   ScrollView;
@@ -54,16 +56,30 @@ namespace sgf
         {0x00000061, 0x0000007A}    // a-z
     };
     
-    enum class  MouseEvent  { DOWN, MOVE, UP };
-    struct      Vector2D    { float x, y; };
-    struct      Color3D     { Byte r, g, b; };
+    struct      Color3D     { Byte r, g, b;     };
+    enum class  MouseEvent  { DOWN, MOVE, UP    };
+    struct      Vector2D    { float x, y;       };
+    struct      ViewProperties
+    {
+        // Notice: these properties are updated by the setView call, writing them is silly
+        
+        float   pixelsPerUnit;  // [pixels] Amount of screen pixels per one graph plane unit
+        float   hS;             // [units]  Horizontal start
+        float   hE;             // [units]  Horizontal end
+        int     heT;            // [units]  Horizontal end tick
+        int     hsT;            // [units]  Horizontal start tick
+        float   vS;             // [units]  Vertical start
+        float   vE;             // [units]  Vertical end
+        int     veT;            // [units]  Vectical end tick
+        int     vsT;            // [units]  Vectical start tick
+    };
     
-    typedef void (*ButtonListener)      (int rectangleId, Canvas* canvasPtr);
-    typedef void (*ContextListener)     (Context* contextPtr, int rectangleId, Canvas* canvasPtr);
-    typedef void (*KeyboardListener)    (int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr);
-    typedef void (*MouseListener)       (MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr);
-    typedef void (*VSliderListener)     (float value, int rectangleId, Canvas* canvasPtr);
-    typedef void (*TextInputListener)   (std::wstring content, int rectangleId, sgf::Canvas* canvasPtr);
+    typedef void (*ButtonListener)      (Rectangle*     instancePtr,    Canvas*     canvasPtr);
+    typedef void (*ContextListener)     (Context*       contextPtr,     Rectangle*  instancePtr,    Canvas*     canvasPtr);
+    typedef void (*KeyboardListener)    (int            keycode,        wchar_t     unicode,        Rectangle*  instancePtr, Canvas* canvasPtr);
+    typedef void (*MouseListener)       (MouseEvent     event,          Vector2D    position,       Rectangle*  instancePtr, Canvas* canvasPtr);
+    typedef void (*VSliderListener)     (float          value,          Rectangle*  instancePtr,    Canvas*     canvasPtr);
+    typedef void (*TextInputListener)   (std::wstring   content,        Rectangle*  instancePtr,    Canvas*     canvasPtr);
 }
 
 #endif

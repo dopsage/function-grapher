@@ -3,9 +3,9 @@
 
 using namespace sgf;
 
-void ScrollView::onSliderEvent(float value, int rectangleId, Canvas* canvasPtr)
+void ScrollView::onSliderEvent(float value, Rectangle* instancePtr, Canvas* canvasPtr)
 {
-    VSlider*    s   = (VSlider*)canvasPtr->getRectanglePtr(rectangleId);
+    VSlider*    s   = (VSlider*)instancePtr;
     ScrollView* v   = (ScrollView*)s->getMetaPtr();
 
     /* Update the list position according to the slider value in such a way

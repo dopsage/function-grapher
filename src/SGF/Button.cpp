@@ -3,9 +3,9 @@
 
 using namespace sgf;
 
-void Button::onButtonMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr)
+void Button::onButtonMouseEvent(MouseEvent event, Vector2D position, Rectangle* instancePtr, Canvas* canvasPtr)
 {
-	Button* b = (Button*)canvasPtr->getRectanglePtr(rectangleId);
+	Button* b = (Button*)instancePtr;
     
     /* Button feeds the listener only when both down and up mouse events occurred
      * in its rectangular bounds. */
@@ -17,7 +17,7 @@ void Button::onButtonMouseEvent(MouseEvent event, Vector2D position, int rectang
 	{
 		b->isMouseDown = false;
         if(b->listener != nullptr && b->contains(position))
-            b->listener(rectangleId, canvasPtr);
+            b->listener(instancePtr, canvasPtr);
 	}
 }
 

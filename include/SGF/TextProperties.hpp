@@ -1,5 +1,5 @@
 
-/********** SIMPLE GUI FRAMEWORK TYPES HEADER **********/
+/********** SIMPLE GUI FRAMEWORK TEXT PROPERTIES MODULE **********/
 
 #ifndef _TEXTPROPERTIES_HPP
 #define _TEXTPROPERTIES_HPP
@@ -14,9 +14,9 @@ namespace sgf
 struct TextProperties
 {
     // Constant
-    Color3D         color;          // Uniform color
-    std::wstring    content;        // Contained text data in unicode (UTF-16 for Windows, UTF-32 for Linux/Mac)
-    int             size;           // Character size in pixels
+    Color3D         color;      // Uniform color
+    std::wstring    content;    // Contained text data in unicode (UTF-16 for Windows, UTF-32 for Linux/Mac)
+    int             size;       // Character size in pixels
     
     // Dynamic (they may be externally changed)
     std::unique_ptr<int[]>  characterWidths;    // Widths of all content unicode characters in pixels

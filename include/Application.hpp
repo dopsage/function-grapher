@@ -5,6 +5,8 @@
 #include <iostream>
 #include "SGF/Button.hpp"
 #include "SGF/Canvas.hpp"
+#include "SGF/FunctionGrapher.hpp"
+#include "SGF/FunctionProperties.hpp"
 #include "SGF/Rectangle.hpp"
 #include "SGF/ScrollView.hpp"
 #include "SGF/TextInput.hpp"
@@ -40,22 +42,32 @@ private:
     static const sgf::Vector2D      V_CANVAS_SIZE;
     static const sgf::Vector2D      V_TEXT_INPUT_PADDING;
     static const sgf::Vector2D      V_TOOLBAR_BUTTON_SIZE;
+
+    static bool                     isViewMouseDown;
     static FunctionEntry            fePrefab;
+    static sgf::Vector2D            mouseDragStart;
     static sgf::TextProperties      tpPrefab;
-    static void                     onAddEntryButtonEvent   (int rectangleId, sgf::Canvas* canvasPtr);
-    static void                     onEntryTextInputEvent   (std::wstring content, int rectangleId, sgf::Canvas* canvasPtr);
-    static void                     onRemoveEntryButtonEvent(int rectangleId, sgf::Canvas* canvasPtr);
-    static void                     onResetGraphButtonEvent (int rectangleId, sgf::Canvas* canvasPtr);
-    static void                     onZoomInButtonEvent     (int rectangleId, sgf::Canvas* canvasPtr);
-    static void                     onZoomOutButtonEvent    (int rectangleId, sgf::Canvas* canvasPtr);
+    static sgf::Vector2D            viewChange;
+    static float                    viewEndX;
+    static float                    viewStartX;
+    static float                    viewStartY;
+    
+    static void                     onAddEntryButtonEvent   (sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     onEntryTextInputEvent   (std::wstring content, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     onGraphsViewMouseEvent  (sgf::MouseEvent event, sgf::Vector2D position, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     onRemoveEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     onResetViewButtonEvent  (sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     onZoomInButtonEvent     (sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     onZoomOutButtonEvent    (sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
     void                            configureInstances      ();
     void                            freeUsedResources       ();
+
     sgf::Button                     bAddEntry;
     sgf::Button                     bResetGraph;
     sgf::Button                     bZoomIn;
     sgf::Button                     bZoomOut;
     sgf::Canvas                     canvas;
-    sgf::Rectangle                  rGraphBackground;
+    sgf::FunctionGrapher            fgGraphsView;
     sgf::Rectangle                  rStatusBackground;
     sgf::Rectangle                  rMousePosition;
     sgf::Rectangle                  rZoom;

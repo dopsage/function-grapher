@@ -3,11 +3,11 @@
 
 using namespace sgf;
 
-void VSlider::onHandleMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr)
+void VSlider::onHandleMouseEvent(MouseEvent event, Vector2D position, Rectangle* instancePtr, Canvas* canvasPtr)
 {
 	/* It is known, that the listening rectangle is actually the slider handle,
      * therefore pointer cast is a safe way of accessing the instance. */
-	Rectangle*  h = (Rectangle*)canvasPtr->getRectanglePtr(rectangleId);
+	Rectangle*  h = (Rectangle*)instancePtr;
     
     /* After all, it is also guaranteed that metadata of the handle instance obtained 
      * above is the controlling slider instance pointer, thus we can access it. */
@@ -35,7 +35,7 @@ void VSlider::onHandleMouseEvent(MouseEvent event, Vector2D position, int rectan
          * It is possible to access private members since we are still in a member
          * (this static function) of a class to which these private fields belong. */
         if(s->listener != nullptr)
-            s->listener(s->value, s->getId(), canvasPtr);
+            s->listener(s->value, s, canvasPtr);
 	}
 	else if(event == MouseEvent::UP)
 	{

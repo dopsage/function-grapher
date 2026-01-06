@@ -19,7 +19,7 @@ class ScrollView : public Rectangle
 {
 private:
     VList       list;
-    static void onSliderEvent(float value, int id, Canvas* canvas);
+    static void onSliderEvent(float value, Rectangle* instancePtr, Canvas* canvas);
     VSlider     slider;
 
 public:

@@ -143,19 +143,19 @@ bool Rectangle::isVisible() const
 void Rectangle::onContextUse(Context* contextPtr)
 {
     if(visible && contextListener != nullptr)
-        contextListener(contextPtr, id, canvasPtr);
+        contextListener(contextPtr, this, canvasPtr);
 }
 
 void Rectangle::onKeyboardInput(int keycode, wchar_t unicode)
 {
     if(visible && keyboardListener != nullptr)
-        keyboardListener(keycode, unicode, id, canvasPtr);
+        keyboardListener(keycode, unicode, this, canvasPtr);
 }
 
 void Rectangle::onMouseInput(MouseEvent event, Vector2D position)
 {
     if(visible && mouseListener != nullptr)
-        mouseListener(event, position, id, canvasPtr);
+        mouseListener(event, position, this, canvasPtr);
 }
 
 void Rectangle::onAdd()

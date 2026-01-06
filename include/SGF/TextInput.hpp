@@ -33,8 +33,8 @@ private:
     Milliseconds        lastBlinkTime;
     int                 leftPadding;
     TextInputListener   listener;
-    static void         onFieldKeyboardEvent(int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr);
-    static void         onFieldMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr);
+    static void         onFieldKeyboardEvent(int keycode, wchar_t unicode, Rectangle* instancePtr, Canvas* canvasPtr);
+    static void         onFieldMouseEvent(MouseEvent event, Vector2D position, Rectangle* instancePtr, Canvas* canvasPtr);
     void                updateCursorPosition();
     void                sanitizeContent();
     int                 verticalPadding;

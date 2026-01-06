@@ -8,9 +8,9 @@ const int TextInput::KEY_LEFT_ARROW     = (int)sf::Keyboard::Key::Left;
 const int TextInput::KEY_RETURN         = (int)sf::Keyboard::Key::Return;
 const int TextInput::KEY_RIGHT_ARROW    = (int)sf::Keyboard::Key::Right;
 
-void TextInput::onFieldKeyboardEvent(int keycode, wchar_t unicode, int rectangleId, Canvas* canvasPtr)
+void TextInput::onFieldKeyboardEvent(int keycode, wchar_t unicode, Rectangle* instancePtr, Canvas* canvasPtr)
 {
-	Rectangle*      f    = canvasPtr->getRectanglePtr(rectangleId);
+	Rectangle*      f    = instancePtr;
 	TextInput*      ti   = (TextInput*)f->getMetaPtr();
     TextProperties* text = f->getText();
     
@@ -45,7 +45,7 @@ void TextInput::onFieldKeyboardEvent(int keycode, wchar_t unicode, int rectangle
             
             // Notify the listener about finished inputting
             if(ti->listener != nullptr)
-                ti->listener(text->content, ti->getId(), canvasPtr);
+                ti->listener(text->content, ti, canvasPtr);
             
 			break;
 		}
@@ -77,9 +77,9 @@ void TextInput::onFieldKeyboardEvent(int keycode, wchar_t unicode, int rectangle
 	}
 }
 
-void TextInput::onFieldMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr)
+void TextInput::onFieldMouseEvent(MouseEvent event, Vector2D position, Rectangle* instancePtr, Canvas* canvasPtr)
 {
-    Rectangle* f    = canvasPtr->getRectanglePtr(rectangleId);
+    Rectangle* f    = instancePtr;
     TextInput* ti   = (TextInput*)f->getMetaPtr();
  
     // No associated text, no further processing!

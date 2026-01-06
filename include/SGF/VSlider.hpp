@@ -20,7 +20,7 @@ private:
 	Rectangle       handle;
 	float 		    handleOffsetY;
 	bool 		    isHandleMouseDown;
-	static void     onHandleMouseEvent(MouseEvent event, Vector2D position, int rectangleId, Canvas* canvasPtr);
+	static void     onHandleMouseEvent(MouseEvent event, Vector2D position, Rectangle* instancePtr, Canvas* canvasPtr);
     
     // The callback is invoked when the slider value changes
     VSliderListener listener;

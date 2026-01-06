@@ -1,36 +1,43 @@
 
 #include "Application.hpp"
 
-const sgf::Color3D      Application::C_BLACK                   ({ 0x00, 0x00, 0x00 });
-const sgf::Color3D      Application::C_BLUE                    ({ 0x00, 0x00, 0xff });
-const sgf::Color3D      Application::C_RED                     ({ 0xff, 0x00, 0x00 });
-const sgf::Color3D      Application::C_GRAY                    ({ 0x80, 0x80, 0x80 });
-const sgf::Color3D      Application::C_GREEN                   ({ 0x00, 0xff, 0x00 });
-const sgf::Color3D      Application::C_WHITE                   ({ 0xff, 0xff, 0xff });
-const float             Application::F_CURSOR_WIDTH            (2.0f);
-const float             Application::F_FUNCTION_ENTRY_HEIGHT   (50.0f);
-const float             Application::F_SCROLL_VIEW_WIDTH       (300.0f);
-const float             Application::F_SLIDER_HANDLE_HEIGHT    (50.0f);
-const float             Application::F_SLIDER_WIDTH            (25.0f);
-const float             Application::F_STATUS_BAR_HEIGHT       (50.0f);
-const float             Application::F_STATUS_MOUSE_INFO_WIDTH (100.0f);
-const float             Application::F_STATUS_ZOOM_INFO_WIDTH  (100.0f);
-const float             Application::F_TOOLBAR_BUTTON_MARGIN   (30.0f);
-const int               Application::I_CANVAS_DRAW_RATE        (60);
-const int               Application::I_ENTRY_TEXT_SIZE         (24);
-const int               Application::I_STATUS_TEXT_SIZE        (16);
-const sgf::Milliseconds Application::MS_CURSOR_BLINK_DURATION  (250);
-const std::string       Application::STR_CANVAS_TITLE          ("Function grapher");
-const sgf::Vector2D     Application::V_CANVAS_SIZE             ({ 1280, 720 });
-const sgf::Vector2D     Application::V_TEXT_INPUT_PADDING      ({ 10, 10 });
-const sgf::Vector2D     Application::V_TOOLBAR_BUTTON_SIZE     ({ 50, 50 });
-FunctionEntry           Application::fePrefab;
-sgf::TextProperties     Application::tpPrefab(C_BLACK, L"", I_ENTRY_TEXT_SIZE);
+const sgf::Color3D      Application::C_BLACK                    ({ 0x00, 0x00, 0x00 });
+const sgf::Color3D      Application::C_BLUE                     ({ 0x00, 0x00, 0xff });
+const sgf::Color3D      Application::C_RED                      ({ 0xff, 0x00, 0x00 });
+const sgf::Color3D      Application::C_GRAY                     ({ 0x80, 0x80, 0x80 });
+const sgf::Color3D      Application::C_GREEN                    ({ 0x00, 0xff, 0x00 });
+const sgf::Color3D      Application::C_WHITE                    ({ 0xff, 0xff, 0xff });
+const float             Application::F_CURSOR_WIDTH             (2.0f);
+const float             Application::F_FUNCTION_ENTRY_HEIGHT    (50.0f);
+const float             Application::F_SCROLL_VIEW_WIDTH        (300.0f);
+const float             Application::F_SLIDER_HANDLE_HEIGHT     (50.0f);
+const float             Application::F_SLIDER_WIDTH             (25.0f);
+const float             Application::F_STATUS_BAR_HEIGHT        (50.0f);
+const float             Application::F_STATUS_MOUSE_INFO_WIDTH  (100.0f);
+const float             Application::F_STATUS_ZOOM_INFO_WIDTH   (100.0f);
+const float             Application::F_TOOLBAR_BUTTON_MARGIN    (30.0f);
+const int               Application::I_CANVAS_DRAW_RATE         (60);
+const int               Application::I_ENTRY_TEXT_SIZE          (24);
+const int               Application::I_STATUS_TEXT_SIZE         (16);
+const sgf::Milliseconds Application::MS_CURSOR_BLINK_DURATION   (250);
+const std::string       Application::STR_CANVAS_TITLE           ("Function grapher");
+const sgf::Vector2D     Application::V_CANVAS_SIZE              ({ 1280, 720 });
+const sgf::Vector2D     Application::V_TEXT_INPUT_PADDING       ({ 10, 10 });
+const sgf::Vector2D     Application::V_TOOLBAR_BUTTON_SIZE      ({ 50, 50 });
 
-void Application::onAddEntryButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
+bool                    Application::isViewMouseDown            (false);
+FunctionEntry           Application::fePrefab;
+sgf::Vector2D           Application::mouseDragStart             ({ 0.0f, 0.0f });
+sgf::TextProperties     Application::tpPrefab                   (C_BLACK, L"", I_ENTRY_TEXT_SIZE);
+sgf::Vector2D           Application::viewChange                 ({ 0.0f, 0.0f });
+float                   Application::viewEndX                   (+8.0f);
+float                   Application::viewStartX                 (-8.0f);
+float                   Application::viewStartY                 (-2.0f);
+
+void Application::onAddEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
     // Retrieve scroll view reference from the button metadata
-    sgf::ScrollView* sv = (sgf::ScrollView*)canvasPtr->getRectanglePtr(rectangleId)->getMetaPtr();
+    sgf::ScrollView* sv = (sgf::ScrollView*)instancePtr->getMetaPtr();
     
     /* Instantiate function entry and text properties prefab. Heap allocation is used
      * to preserve data across entry add/remove callback calls, later the memory is
@@ -49,16 +56,61 @@ void Application::onAddEntryButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
     canvasPtr->add(fe);
 }
 
-void Application::onEntryTextInputEvent(std::wstring content, int rectangleId, sgf::Canvas* canvasPtr)
+void Application::onEntryTextInputEvent(std::wstring content, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    std::wcout << L"Text entered in " << rectangleId << L": " << content << std::endl;
+    std::wcout << L"Text entered in " << instancePtr->getId() << L": " << content << std::endl;
 }
 
-void Application::onRemoveEntryButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
+void Application::onGraphsViewMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
+{
+    sgf::FunctionGrapher* fg = (sgf::FunctionGrapher*)instancePtr;
+
+    if(event == sgf::MouseEvent::DOWN)
+    {
+        // At start, catch the dragging start position and initialize view just for safety
+        mouseDragStart  = position;
+        fg->setView(viewStartX, viewEndX, viewStartY);
+        
+        isViewMouseDown = true;
+    }
+    else if(isViewMouseDown && event == sgf::MouseEvent::MOVE)
+    {
+        /* Compute the displacement relative to dragging start position, transform
+         * the vector to grapher plane coordinates in order to get appropriate behaviour. */
+        float ppu   = fg->getViewPtr()->pixelsPerUnit;
+        viewChange  =
+        {
+            (mouseDragStart.x - position.x) / ppu,
+            (position.y - mouseDragStart.y) / ppu
+        };
+        
+        // Update the view by including the displacement to the current axis rangers
+        fg->setView(
+            viewStartX  + viewChange.x,
+            viewEndX    + viewChange.x,
+            viewStartY  + viewChange.y
+        );
+    }
+    else if(event == sgf::MouseEvent::UP)
+    {
+        // In the end, view arguments range and starting value with displacement
+        viewStartX  += viewChange.x;
+        viewEndX    += viewChange.x;
+        viewStartY  += viewChange.y;
+        viewChange = { 0.0f, 0.0f };
+        
+        isViewMouseDown = false;
+    }
+    
+    // This is really cool, one can integrate UI modules with the grapher :D
+    //((sgf::Rectangle*)fg->getMetaPtr())->setPosition(fg->toCanvasPlane({ 3.0f, -2.0f }));
+}
+
+void Application::onRemoveEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
     // Retrieve entry associated with the button through its metadata, and then
     // the scroll view through the entry metadata ~ love iwt reasoning deep
-    FunctionEntry*          fe = (FunctionEntry*)canvasPtr->getRectanglePtr(rectangleId)->getMetaPtr();
+    FunctionEntry*          fe = (FunctionEntry*)instancePtr->getMetaPtr();
     sgf::TextProperties*    tp = fe->getTextInputPtr()->getFieldPtr()->getText();
     sgf::ScrollView*        sv = (sgf::ScrollView*)fe->getMetaPtr();
 
@@ -71,17 +123,17 @@ void Application::onRemoveEntryButtonEvent(int rectangleId, sgf::Canvas* canvasP
     delete tp;
 }
 
-void Application::onResetGraphButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
+void Application::onResetViewButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    std::cout << "Reset graph" << std::endl;
+    std::cout << "Reset view" << std::endl;
 }
 
-void Application::onZoomInButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
+void Application::onZoomInButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
     std::cout << "Zoom in" << std::endl;
 }
 
-void Application::onZoomOutButtonEvent(int rectangleId, sgf::Canvas* canvasPtr)
+void Application::onZoomOutButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
     std::cout << "Zoom out" << std::endl;
 }
@@ -96,7 +148,7 @@ void Application::configureInstances()
     
     // Reset graph view (button)
     bResetGraph.setColor    (C_BLUE);
-    bResetGraph.setListener (onResetGraphButtonEvent);
+    bResetGraph.setListener (onResetViewButtonEvent);
     bResetGraph.setSize     (V_TOOLBAR_BUTTON_SIZE);
 
     // Zoom graph view in (button)
@@ -133,23 +185,24 @@ void Application::configureInstances()
     fePrefab.getTextInputPtr()->getFieldPtr()->setColor (C_RED);
     
     // Test of custom look using context graphics, each prefab instance will do the same!
-    fePrefab.getTextInputPtr()->getFieldPtr()->setContextListener([](sgf::Context* contextPtr, int rectangleId, sgf::Canvas* canvasPtr)
+    fePrefab.getTextInputPtr()->getFieldPtr()->setContextListener([](sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
     {
-        sgf::Rectangle* r = (sgf::Rectangle*)canvasPtr->getRectanglePtr(rectangleId);
+        sgf::Rectangle* r = (sgf::Rectangle*)instancePtr;
         
         contextPtr->line(
             r->getPosition(),
             { r->getX() + r->getWidth(), r->getY() + r->getHeight() },
             C_WHITE,
-            rectangleId % 8 + 1
+            instancePtr->getId() % 8 + 1
         );
     });
 
     // Graph view background (rectangle)
-    rGraphBackground.setColor   (C_WHITE);
-    rGraphBackground.setPosition({ F_SCROLL_VIEW_WIDTH, 0 });
-    rGraphBackground.setPriority(0);
-    rGraphBackground.setSize    ({ V_CANVAS_SIZE.x - F_SCROLL_VIEW_WIDTH, V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
+    fgGraphsView.setColor           (C_WHITE);
+    fgGraphsView.setMouseListener   (onGraphsViewMouseEvent);
+    fgGraphsView.setPosition        ({ F_SCROLL_VIEW_WIDTH, 0 });
+    fgGraphsView.setPriority        (0);
+    fgGraphsView.setSize            ({ V_CANVAS_SIZE.x - F_SCROLL_VIEW_WIDTH, V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
     
     // Bottom status bar background (rectangle)
     rStatusBackground.setColor      (C_GRAY);
@@ -194,7 +247,7 @@ void Application::freeUsedResources()
     while(--entryCount)
     {
         FunctionEntry* fe = (FunctionEntry*)svFunctions.getListPtr()->getMemberPtr(0);
-        fe->getButtonPtr()->getListener()(fe->getButtonPtr()->getId(), &canvas);
+        fe->getButtonPtr()->getListener()(fe->getButtonPtr(), &canvas);
     }
 }
 
@@ -223,18 +276,28 @@ int Application::run()
     canvas.add(&bResetGraph);
     canvas.add(&bZoomIn);
     canvas.add(&bZoomOut);
-    
-    canvas.add(&rGraphBackground);
-    
+    canvas.add(&fgGraphsView);
     canvas.add(&rStatusBackground);
     canvas.add(&rMousePosition);
     canvas.add(&rZoom);
     canvas.add(&svFunctions);
     canvas.add(&vlToolbarButtons);
     
+    // Initialize the grapher view
+    fgGraphsView.setView(viewStartX, viewEndX, viewStartY);
+    
+// SANDBOX START
+    
     // Add 10 function entries at start by emulating add button press
     for(int i = 0; i < 10; i++)
-        bAddEntry.getListener()(bAddEntry.getId(), &canvas);
+        bAddEntry.getListener()(&bAddEntry, &canvas);
+    
+    // Let grapher draw some function
+    sgf::FunctionProperties fp(L"f(x)=2x*5");
+    fgGraphsView.setMetaPtr(&bZoomOut);
+    fgGraphsView.add(&fp);
+    
+// SANDBOX END
     
     while(canvas.isActive() && canvas.tick())
     {

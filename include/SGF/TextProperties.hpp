@@ -26,6 +26,7 @@ struct TextProperties
     TextProperties();
     TextProperties(Color3D color, std::wstring content, int size);
     TextProperties(const TextProperties& other);
+    TextProperties operator=(const TextProperties& other);
 };
 
 }

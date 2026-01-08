@@ -34,6 +34,9 @@ private:
     static const float              F_STATUS_MOUSE_INFO_WIDTH;
     static const float              F_STATUS_ZOOM_INFO_WIDTH;
     static const float              F_TOOLBAR_BUTTON_MARGIN;
+    static const float              F_VIEW_DEFAULT_END_X;
+    static const float              F_VIEW_DEFAULT_START_X;
+    static const float              F_VIEW_DEFAULT_START_Y;
     static const int                I_CANVAS_DRAW_RATE;
     static const int                I_ENTRY_TEXT_SIZE;
     static const int                I_STATUS_TEXT_SIZE;
@@ -51,6 +54,7 @@ private:
     static float                    viewEndX;
     static float                    viewStartX;
     static float                    viewStartY;
+    static float                    zoomScale;
     
     static void                     onAddEntryButtonEvent   (sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
     static void                     onEntryTextInputEvent   (std::wstring content, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);

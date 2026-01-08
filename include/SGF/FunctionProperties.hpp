@@ -23,6 +23,7 @@ struct FunctionProperties
     FunctionProperties();
     FunctionProperties(std::wstring definition);
     FunctionProperties(const FunctionProperties& other);
+    FunctionProperties operator=(const FunctionProperties& other);
 };
 
 }

@@ -13,9 +13,12 @@ const float             Application::F_SCROLL_VIEW_WIDTH        (300.0f);
 const float             Application::F_SLIDER_HANDLE_HEIGHT     (50.0f);
 const float             Application::F_SLIDER_WIDTH             (25.0f);
 const float             Application::F_STATUS_BAR_HEIGHT        (50.0f);
-const float             Application::F_STATUS_MOUSE_INFO_WIDTH  (100.0f);
+const float             Application::F_STATUS_MOUSE_INFO_WIDTH  (140.0f);
 const float             Application::F_STATUS_ZOOM_INFO_WIDTH   (100.0f);
 const float             Application::F_TOOLBAR_BUTTON_MARGIN    (30.0f);
+const float             Application::F_VIEW_DEFAULT_END_X       (+4.0f);
+const float             Application::F_VIEW_DEFAULT_START_X     (-4.0f);
+const float             Application::F_VIEW_DEFAULT_START_Y     (-2.0f);
 const int               Application::I_CANVAS_DRAW_RATE         (60);
 const int               Application::I_ENTRY_TEXT_SIZE          (24);
 const int               Application::I_STATUS_TEXT_SIZE         (16);
@@ -30,9 +33,10 @@ FunctionEntry           Application::fePrefab;
 sgf::Vector2D           Application::mouseDragStart             ({ 0.0f, 0.0f });
 sgf::TextProperties     Application::tpPrefab                   (C_BLACK, L"", I_ENTRY_TEXT_SIZE);
 sgf::Vector2D           Application::viewChange                 ({ 0.0f, 0.0f });
-float                   Application::viewEndX                   (+8.0f);
-float                   Application::viewStartX                 (-8.0f);
-float                   Application::viewStartY                 (-2.0f);
+float                   Application::viewEndX                   (F_VIEW_DEFAULT_END_X);
+float                   Application::viewStartX                 (F_VIEW_DEFAULT_START_X);
+float                   Application::viewStartY                 (F_VIEW_DEFAULT_START_Y);
+float                   Application::zoomScale                  (1.0f);
 
 void Application::onAddEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
@@ -63,7 +67,8 @@ void Application::onEntryTextInputEvent(std::wstring content, sgf::Rectangle* in
 
 void Application::onGraphsViewMouseEvent(sgf::MouseEvent event, sgf::Vector2D position, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    sgf::FunctionGrapher* fg = (sgf::FunctionGrapher*)instancePtr;
+    sgf::FunctionGrapher*   fg  = (sgf::FunctionGrapher*)instancePtr;
+    sgf::Rectangle*         m   = (sgf::Rectangle*)fg->getMetaPtr();
 
     if(event == sgf::MouseEvent::DOWN)
     {
@@ -73,33 +78,50 @@ void Application::onGraphsViewMouseEvent(sgf::MouseEvent event, sgf::Vector2D po
         
         isViewMouseDown = true;
     }
-    else if(isViewMouseDown && event == sgf::MouseEvent::MOVE)
+    else if(event == sgf::MouseEvent::MOVE)
     {
-        /* Compute the displacement relative to dragging start position, transform
-         * the vector to grapher plane coordinates in order to get appropriate behaviour. */
-        float ppu   = fg->getViewPtr()->pixelsPerUnit;
-        viewChange  =
+        if(isViewMouseDown)
         {
-            (mouseDragStart.x - position.x) / ppu,
-            (position.y - mouseDragStart.y) / ppu
-        };
+            /* Compute the displacement relative to dragging start position, transform
+             * the vector to grapher plane coordinates in order to get appropriate behaviour. */
+            float ppu   = fg->getViewPtr()->pixelsPerUnit;
+            viewChange  =
+            {
+                (mouseDragStart.x - position.x) / ppu,
+                (position.y - mouseDragStart.y) / ppu
+            };
+            
+            // Update the view by including the displacement to the current axis rangers
+            fg->setView(
+                viewStartX  + viewChange.x,
+                viewEndX    + viewChange.x,
+                viewStartY  + viewChange.y
+            );
+        }
         
-        // Update the view by including the displacement to the current axis rangers
-        fg->setView(
-            viewStartX  + viewChange.x,
-            viewEndX    + viewChange.x,
-            viewStartY  + viewChange.y
-        );
+        // Update mouse position text
+        if(m->isUsingText())
+        {
+            sgf::Vector2D grapherMousePos = fg->toGrapherPlane(position);
+            
+            wchar_t buffer[32];
+            swprintf(buffer, 32, L"( %.4f %.4f )", grapherMousePos.x, grapherMousePos.y);
+            
+            m->getText()->content      = std::wstring(buffer);
+            m->getText()->refreshFlag  = true;
+        }
     }
     else if(event == sgf::MouseEvent::UP)
     {
-        // In the end, view arguments range and starting value with displacement
-        viewStartX  += viewChange.x;
-        viewEndX    += viewChange.x;
-        viewStartY  += viewChange.y;
-        viewChange = { 0.0f, 0.0f };
-        
-        isViewMouseDown = false;
+        if(isViewMouseDown)
+        {
+            // In the end, view arguments range and starting value with displacement
+            viewStartX  += viewChange.x;
+            viewEndX    += viewChange.x;
+            viewStartY  += viewChange.y;
+            viewChange = { 0.0f, 0.0f };
+            isViewMouseDown = false;
+        }
     }
     
     // This is really cool, one can integrate UI modules with the grapher :D
@@ -108,8 +130,9 @@ void Application::onGraphsViewMouseEvent(sgf::MouseEvent event, sgf::Vector2D po
 
 void Application::onRemoveEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    // Retrieve entry associated with the button through its metadata, and then
-    // the scroll view through the entry metadata ~ love iwt reasoning deep
+    /* Retrieve entry associated with the button through its metadata, and then
+     * the scroll view through the entry metadata ~ love iwt reasoning deep.
+       Note from future: actually Application pointer can be passed, but it appears dirty }: */
     FunctionEntry*          fe = (FunctionEntry*)instancePtr->getMetaPtr();
     sgf::TextProperties*    tp = fe->getTextInputPtr()->getFieldPtr()->getText();
     sgf::ScrollView*        sv = (sgf::ScrollView*)fe->getMetaPtr();
@@ -125,17 +148,64 @@ void Application::onRemoveEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Can
 
 void Application::onResetViewButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    std::cout << "Reset view" << std::endl;
+    sgf::Rectangle*         z   = (sgf::Rectangle*)instancePtr->getMetaPtr();
+    sgf::FunctionGrapher*   fg  = (sgf::FunctionGrapher*)z->getMetaPtr();
+
+    viewStartX  = F_VIEW_DEFAULT_START_X;
+    viewEndX    = F_VIEW_DEFAULT_END_X;
+    viewStartY  = F_VIEW_DEFAULT_START_Y;
+    zoomScale   = 1.0f;
+    
+    fg->setView(viewStartX, viewEndX, viewStartY);
+    
+    // Update zoom text
+    wchar_t buffer[16];
+    swprintf(buffer, 16, L"x%.4f", zoomScale);
+    z->getText()->content      = std::wstring(buffer);
+    z->getText()->refreshFlag  = true;
 }
 
 void Application::onZoomInButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    std::cout << "Zoom in" << std::endl;
+    sgf::Rectangle*         z   = (sgf::Rectangle*)instancePtr->getMetaPtr();
+    sgf::FunctionGrapher*   fg  = (sgf::FunctionGrapher*)z->getMetaPtr();
+
+    float quarterViewLength = (viewEndX - viewStartX) / 4.0f;
+    viewStartX  += quarterViewLength;
+    viewEndX    -= quarterViewLength;
+    
+    /* Since view is not yet updated, by means of property of saved proportions
+     * between width and height of the view, it is possible to obtain future view
+     * height which is half of the old one. */
+    viewStartY  += (fg->getViewPtr()->vE - fg->getViewPtr()->vS) / 2.0f / 2.0f;
+    
+    zoomScale   *= 2.0f;
+    fg->setView(viewStartX, viewEndX, viewStartY);
+    
+    // Update zoom text
+    wchar_t buffer[16];
+    swprintf(buffer, 16, L"x%.4f", zoomScale);
+    z->getText()->content      = std::wstring(buffer);
+    z->getText()->refreshFlag  = true;
 }
 
 void Application::onZoomOutButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    std::cout << "Zoom out" << std::endl;
+    sgf::Rectangle*         z   = (sgf::Rectangle*)instancePtr->getMetaPtr();
+    sgf::FunctionGrapher*   fg  = (sgf::FunctionGrapher*)z->getMetaPtr();
+
+    float halfViewLength = (viewEndX - viewStartX) / 2.0f;
+    viewStartX  -= halfViewLength;
+    viewEndX    += halfViewLength;
+    viewStartY  -= (fg->getViewPtr()->vE - fg->getViewPtr()->vS) / 2.0f;
+    zoomScale   /= 2.0f;
+    fg->setView(viewStartX, viewEndX, viewStartY);
+    
+    // Update zoom text
+    wchar_t buffer[16];
+    swprintf(buffer, 16, L"x%.4f", zoomScale);
+    z->getText()->content      = std::wstring(buffer);
+    z->getText()->refreshFlag  = true;
 }
 
 void Application::configureInstances()
@@ -149,17 +219,19 @@ void Application::configureInstances()
     // Reset graph view (button)
     bResetGraph.setColor    (C_BLUE);
     bResetGraph.setListener (onResetViewButtonEvent);
+    bResetGraph.setMetaPtr  (&rZoom);
     bResetGraph.setSize     (V_TOOLBAR_BUTTON_SIZE);
 
     // Zoom graph view in (button)
-    bZoomIn.setColor    (C_RED);
-    bZoomIn.setListener (onZoomInButtonEvent);
-    bZoomIn.setSize     (V_TOOLBAR_BUTTON_SIZE);
+    bZoomIn.copy            (&bResetGraph);
+    bZoomIn.setMetaPtr      (&rZoom);
+    bZoomIn.setColor        (C_RED);
+    bZoomIn.setListener     (onZoomInButtonEvent);
 
     // Zoom graph view out (button)
-    bZoomOut.setColor      (C_GREEN);
-    bZoomOut.setListener   (onZoomOutButtonEvent);
-    bZoomOut.setSize       (V_TOOLBAR_BUTTON_SIZE);
+    bZoomOut.copy           (&bResetGraph);
+    bZoomOut.setColor       (C_GREEN);
+    bZoomOut.setListener    (onZoomOutButtonEvent);
     
     // Main window (canvas)
     canvas.setDrawingRate   (I_CANVAS_DRAW_RATE);
@@ -199,6 +271,7 @@ void Application::configureInstances()
 
     // Graph view background (rectangle)
     fgGraphsView.setColor           (C_WHITE);
+    fgGraphsView.setMetaPtr         (&rMousePosition);
     fgGraphsView.setMouseListener   (onGraphsViewMouseEvent);
     fgGraphsView.setPosition        ({ F_SCROLL_VIEW_WIDTH, 0 });
     fgGraphsView.setPriority        (0);
@@ -212,6 +285,7 @@ void Application::configureInstances()
     
     // Graph mouse position status text (rectangle)
     rMousePosition.setColor     (C_GRAY);
+    rMousePosition.setMetaPtr   (&rZoom);
     rMousePosition.setPosition  ({  V_CANVAS_SIZE.x - F_STATUS_ZOOM_INFO_WIDTH - F_STATUS_MOUSE_INFO_WIDTH,
                                     V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
     rMousePosition.setPriority  (6); 
@@ -220,6 +294,7 @@ void Application::configureInstances()
     
     // Graph zoom scale status text (rectangle)
     rZoom.copy          (&rMousePosition);
+    rZoom.setMetaPtr    (&fgGraphsView);
     rZoom.setPosition   ({ rZoom.getX() + F_STATUS_MOUSE_INFO_WIDTH, rZoom.getY() });
     rZoom.setText       (&tZoom);
     
@@ -252,8 +327,8 @@ void Application::freeUsedResources()
 }
 
 Application::   Application() :
-                tMousePosition(C_BLACK, L"(100, 100)", I_STATUS_TEXT_SIZE),
-                tZoom         (C_BLACK, L"x1.0",       I_STATUS_TEXT_SIZE)
+                tMousePosition  (C_BLACK, L"( 0, 0 )", I_STATUS_TEXT_SIZE),
+                tZoom           (C_BLACK, L"x1.0000", I_STATUS_TEXT_SIZE)
 {
     configureInstances();
 }
@@ -288,13 +363,14 @@ int Application::run()
     
 // SANDBOX START
     
+// TODO: Make updating zoom text some function bc it is done in three places!
+    
     // Add 10 function entries at start by emulating add button press
     for(int i = 0; i < 10; i++)
         bAddEntry.getListener()(&bAddEntry, &canvas);
     
     // Let grapher draw some function
     sgf::FunctionProperties fp(L"f(x)=2x*5");
-    fgGraphsView.setMetaPtr(&bZoomOut);
     fgGraphsView.add(&fp);
     
 // SANDBOX END

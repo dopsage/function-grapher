@@ -19,3 +19,14 @@ FunctionProperties::FunctionProperties(const FunctionProperties& other) :
 {
     
 }
+
+FunctionProperties FunctionProperties::operator=(const FunctionProperties& other)
+{
+    this->definition  = other.definition;
+    
+    /* The properties must be updates immediatelly after copying. This is clearer
+     * way than just mindlessly copying cached data. */
+    this->refreshFlag = true;
+    
+    return *this;
+}

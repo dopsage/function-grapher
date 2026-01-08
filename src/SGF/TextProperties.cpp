@@ -21,3 +21,15 @@ TextProperties::TextProperties(const TextProperties& other) :
 {
     
 }
+
+TextProperties TextProperties::operator=(const TextProperties& other)
+{
+    this->color   = other.color;
+    this->content = other.content;
+    this->size    = other.size;
+    
+    // Trigger refresh to neatly update the copied structure with realtime data
+    this->refreshFlag = true;
+    
+    return *this;
+}

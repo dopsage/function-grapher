@@ -19,18 +19,19 @@ namespace sgf
     typedef const std::vector<
     std::pair<wchar_t, wchar_t>>    UnicodeRangeVector;
     
-    class   Button;
-    class   Canvas;
-    class   Context;
-    class   FunctionGrapher;
-    class   FunctionProperties;
-    class   InputParser;
-    class   Rectangle;
-    class   ScrollView;
-    class   TextInput;
-    struct  TextProperties;
-    class   VList;
-    class   VSlider;
+    class       Button;
+    class       Canvas;
+    class       Context;
+    class       FunctionGrapher;
+    class       FunctionProperties;
+    enum class  FPError;
+    class       InputParser;
+    class       Rectangle;
+    class       ScrollView;
+    class       TextInput;
+    struct      TextProperties;
+    class       VList;
+    class       VSlider;
     
     // All of unicode
     const UnicodeRangeVector IF_ALL =

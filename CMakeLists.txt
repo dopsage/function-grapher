@@ -19,6 +19,7 @@ add_executable(
     src/SGF/Canvas.cpp
     src/SGF/Context.cpp
     src/SGF/FunctionGrapher.cpp
+    src/SGF/FunctionParser.cpp
     src/SGF/FunctionProperties.cpp
     src/SGF/InputParser.cpp
     src/SGF/Rectangle.cpp

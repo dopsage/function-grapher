@@ -5,6 +5,7 @@
 #define _FUNCTIONPROPERTIES_HPP
 
 #include <map>
+#include "SGF/FunctionParser.hpp"
 #include "SGF/Types.hpp"
 
 namespace sgf

@@ -40,8 +40,9 @@ float                   Application::zoomScale                  (1.0f);
 
 void Application::onAddEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
-    // Retrieve scroll view reference from the button metadata
-    sgf::ScrollView* sv = (sgf::ScrollView*)instancePtr->getMetaPtr();
+    // Retrieve scroll view reference from the button metadata, and from it retrieve the function grapher's
+    sgf::ScrollView*        sv = (sgf::ScrollView*)instancePtr->getMetaPtr();
+    sgf::FunctionGrapher*   fg = (sgf::FunctionGrapher*)sv->getMetaPtr();
     
     /* Instantiate function entry and text properties prefab. Heap allocation is used
      * to preserve data across entry add/remove callback calls, later the memory is
@@ -54,6 +55,9 @@ void Application::onAddEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas
     fe->setMetaPtr                      (sv);   // This way button can access function entry through
     fe->getButtonPtr()->setMetaPtr      (fe);   // its metadata, and scroll view through entry's metadata
     fe->getTextInputPtr()->setFieldText (tp);
+
+    // Register function in grapher
+    fg->add(fe->getFunction());
 
     // Add the entry to the scroll view list and then to the canvas
     sv->getListPtr()->insert(sv->getListPtr()->getCount() - 1, fe);
@@ -136,10 +140,14 @@ void Application::onRemoveEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Can
     FunctionEntry*          fe = (FunctionEntry*)instancePtr->getMetaPtr();
     sgf::TextProperties*    tp = fe->getTextInputPtr()->getFieldPtr()->getText();
     sgf::ScrollView*        sv = (sgf::ScrollView*)fe->getMetaPtr();
+    sgf::FunctionGrapher*   fg = (sgf::FunctionGrapher*)sv->getMetaPtr();
 
     // Remove the entry from the scroll view list and canvas
     sv->getListPtr()->remove(fe);
     canvasPtr->remove       (fe);
+    
+    // Remove the entry function from grapher registry
+    fg->remove(fe->getFunction());
     
     // Tell the system that memory occupied by the entry and its text is now free
     delete fe;
@@ -243,7 +251,7 @@ void Application::configureInstances()
     fePrefab.setButtonListener  (onRemoveEntryButtonEvent);
     fePrefab.setButtonWidth     (F_FUNCTION_ENTRY_HEIGHT);
     fePrefab.setSize            ({ F_SCROLL_VIEW_WIDTH - F_SLIDER_WIDTH, F_FUNCTION_ENTRY_HEIGHT });
-    fePrefab.getButtonPtr()->setColor   (C_BLACK);
+    fePrefab.getButtonPtr()->setColor   (C_BLUE);
     fePrefab.getButtonPtr()->setMetaPtr (&fePrefab);                            // Prefab variable (entry pointer)
     fePrefab.getTextInputPtr()->setBlinkDuration    (MS_CURSOR_BLINK_DURATION);
     fePrefab.getTextInputPtr()->setColor            (C_BLUE);
@@ -251,13 +259,13 @@ void Application::configureInstances()
     fePrefab.getTextInputPtr()->setFieldText        (nullptr);                  // Prefab variable
     fePrefab.getTextInputPtr()->setFilterPtr        (&sgf::IF_ALL);
     fePrefab.getTextInputPtr()->setLeftPadding      (V_TEXT_INPUT_PADDING.x);
-    fePrefab.getTextInputPtr()->setListener         (onEntryTextInputEvent);
+    //fePrefab.getTextInputPtr()->setListener         (onEntryTextInputEvent);
     fePrefab.getTextInputPtr()->setVerticalPadding  (V_TEXT_INPUT_PADDING.y);
     fePrefab.getTextInputPtr()->getCursorPtr()->setColor(C_BLACK);
     fePrefab.getTextInputPtr()->getFieldPtr()->setColor (C_RED);
     
     // Test of custom look using context graphics, each prefab instance will do the same!
-    fePrefab.getTextInputPtr()->getFieldPtr()->setContextListener([](sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
+    /*fePrefab.getTextInputPtr()->getFieldPtr()->setContextListener([](sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
     {
         sgf::Rectangle* r = (sgf::Rectangle*)instancePtr;
         
@@ -267,7 +275,7 @@ void Application::configureInstances()
             C_WHITE,
             instancePtr->getId() % 8 + 1
         );
-    });
+    });*/
 
     // Graph view background (rectangle)
     fgGraphsView.setColor           (C_WHITE);
@@ -300,6 +308,7 @@ void Application::configureInstances()
     
     // Scrollable view of added function entries (scroll view)
     svFunctions.setColor        (C_GRAY);
+    svFunctions.setMetaPtr      (&fgGraphsView);
     svFunctions.setPriority     (0);
     svFunctions.setSize         ({ F_SCROLL_VIEW_WIDTH, V_CANVAS_SIZE.y - F_STATUS_BAR_HEIGHT });
     svFunctions.setSliderWidth  (F_SLIDER_WIDTH);
@@ -368,10 +377,6 @@ int Application::run()
     // Add 10 function entries at start by emulating add button press
     for(int i = 0; i < 10; i++)
         bAddEntry.getListener()(&bAddEntry, &canvas);
-    
-    // Let grapher draw some function
-    sgf::FunctionProperties fp(L"f(x)=2x*5");
-    fgGraphsView.add(&fp);
     
 // SANDBOX END
     

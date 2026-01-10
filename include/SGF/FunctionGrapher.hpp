@@ -18,7 +18,7 @@ namespace sgf
 class FunctionGrapher final : public Rectangle
 {
 private:
-    void                                cacheDefinition(FunctionProperties* function);
+    bool                                cacheDefinition(FunctionProperties* function);
     std::vector<FunctionProperties*>    functionPtrs;
     bool                                isViewSet;
     static void                         onFunctionGrapherContextUse(Context* contextPtr, Rectangle* instancePtr, Canvas* canvasPtr);

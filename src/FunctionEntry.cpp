@@ -3,13 +3,25 @@
 
 using namespace sgf;
 
+void FunctionEntry::onTextInputEvent(std::wstring content, Rectangle* instancePtr, Canvas* canvasPtr)
+{
+    FunctionEntry* fe = (FunctionEntry*)instancePtr->getMetaPtr();
+    
+    fe->getFunction()->definition   = content;
+    fe->getFunction()->refreshFlag  = true;
+}
+
 FunctionEntry:: FunctionEntry() :
                 Rectangle::Rectangle(),
                 button(),
+                function(),
                 input()
 {
     setButtonListener(nullptr);
     setButtonWidth(50.0f);
+    
+    input.setListener(FunctionEntry::onTextInputEvent);
+    input.setMetaPtr(this);
 }
 
 void FunctionEntry::copy(Rectangle* other)
@@ -21,15 +33,19 @@ void FunctionEntry::copy(Rectangle* other)
     FunctionEntry* ofe = (FunctionEntry*)other;
     
     button  .copy(ofe->getButtonPtr());
+    
+    // Input listener and meta gets reset! gotta bring em back
     input   .copy(ofe->getTextInputPtr());
+    input   .setListener(FunctionEntry::onTextInputEvent);
+    input   .setMetaPtr(this);
     
     setButtonListener   (ofe->getButtonPtr()->getListener());
     setButtonWidth      (ofe->getButtonPtr()->getWidth());
 }
 
-FunctionData FunctionEntry::getFunctionData() const
+sgf::FunctionProperties* FunctionEntry::getFunction()
 {
-    return { "Lun", [](float x) { return x * x; } };
+    return &function;
 }
 
 Button* FunctionEntry::getButtonPtr()

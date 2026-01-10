@@ -4,10 +4,12 @@
 
 using namespace sgf;
 
-void FunctionGrapher::cacheDefinition(FunctionProperties* function)
+bool FunctionGrapher::cacheDefinition(FunctionProperties* function)
 {
-    // Somehow interpret function definition
-    // ...
+    // Parse the function using dedicated module
+    FunctionParser parser(function->definition);
+    if(parser.getError() != FPError::NONE)
+        return false;
     
     // Fill mapping cache
     function->mappingCache.clear();
@@ -16,9 +18,10 @@ void FunctionGrapher::cacheDefinition(FunctionProperties* function)
     for(int sI = 0; sI <= sC; sI++)
     {
         float fA = view.hS + sI * sL;   // Function argument
-        float fV = fA * std::sin(fA);   // Function value (for now it is always f(x)=x*sin(x))
+        float fV = parser.getValue(fA); // Function value
         function->mappingCache[fA] = fV;
     }
+    return true;
 }
 
 void FunctionGrapher::onFunctionGrapherContextUse(Context* contextPtr, Rectangle* instancePtr, Canvas* canvasPtr)
@@ -57,7 +60,10 @@ void FunctionGrapher::onFunctionGrapherContextUse(Context* contextPtr, Rectangle
         // Refresh mapping cache of the registered function if it has the refresh flag set
         if(function->refreshFlag)
         {
-            fg->cacheDefinition(function);
+            if(!fg->cacheDefinition(function))
+                // Function definition parsing error, cannot generate cache
+                continue;
+                
             function->refreshFlag = false;
         }
         

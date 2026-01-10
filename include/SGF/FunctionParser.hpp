@@ -5,7 +5,11 @@
 #define _FUNCTIONPARSER_HPP
 
 #include <iostream>  // Debug only
+#include <cmath>
 #include <cstdint>
+#include <unordered_map>
+#include <unordered_set>
+#include <stack>
 #include <vector>
 
 namespace sgf
@@ -15,7 +19,10 @@ enum class  FPError
 {
     NONE                            = 0,
     ILLEGAL_DECLARATION_CHARACTER   = 1,
-    INVALID_DECLARATION_SYNTAX      = 2
+    INVALID_DECLARATION_SYNTAX      = 2,
+    UNDEFINED_EXPRESSION_SYMBOL     = 3,
+    INVALID_EXPRESSION_SYNTAX       = 4,
+    ILLEGAL_EXPRESSION_CHARACTER    = 5
 };
 
 /* DESC */
@@ -24,15 +31,13 @@ class FunctionParser
 private:
     struct ExpressionChunk
     {
-        uint16_t        index;  // Position in definition string at which the chunk starts
-        union
-        {
-            uint32_t    length; // Indicates a chunk length to right from position `index`
-            float       number; // If chunk is of number type, in the end this gets its numeric value
-        }               data;
-        uint8_t         type;   // Type of the chunk, can tell what can be done with it
+        uint16_t    index;  // Position in definition string at which the chunk starts
+        uint32_t    length; // Indicates a chunk length to right from position `index`
+        float       number; // If chunk is of number type, in the end this gets its numeric value
+        uint8_t     type;   // Type of the chunk, can tell what can be done with it
     };
 
+    static const wchar_t    CH_POINT;
     static const wchar_t    CH_EQUALS;
     static const wchar_t    CH_LEFT_PARENTHESIS;
     static const wchar_t    CH_RIGHT_PARENTHESIS;
@@ -45,8 +50,11 @@ private:
     static const wchar_t    OP_POW;
     static const wchar_t    OP_SUB;
     
+    // Used to efficiently deal with operator precedence in postfixization process
+    static const std::unordered_map<wchar_t, int> OP_SCORES;
+    
     std::wstring                    argName;
-    void                            decode();
+    void                            chunkize();
     std::vector<ExpressionChunk>    defChunks;
     std::wstring                    defString;
     FPError                         error;

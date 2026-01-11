@@ -4,12 +4,13 @@
 #ifndef _BUTTON_HPP
 #define _BUTTON_HPP
 
-#include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
-#include "SGF/Types.hpp"
+#include "SGF/Canvas.hpp"
 
 namespace sgf
 {
+
+typedef void (*ButtonListener) (Rectangle* instancePtr, Canvas* canvasPtr);
 
 /* Provides a primitive button functionality. Allows listening for clicks in bounds
  * of the button rectangular area. */

@@ -9,6 +9,7 @@ Context::   Context() :
     
 }
 
+// TODO: Maybe use something more sophisticated instead of SFML rectangle?
 void Context::line(Vector2D start, Vector2D end, Color3D color, int thickness)
 {
     Vector2D    vDir        = { end.x - start.x, end.y - start.y };

@@ -15,6 +15,21 @@
 namespace sgf
 {
 
+struct ViewProperties
+{
+    // Notice: these properties are updated by the setView call, writing them is silly
+    
+    float   pixelsPerUnit;  // [pixels] Amount of screen pixels per one graph plane unit
+    float   hS;             // [units]  Horizontal start
+    float   hE;             // [units]  Horizontal end
+    int     heT;            // [units]  Horizontal end tick
+    int     hsT;            // [units]  Horizontal start tick
+    float   vS;             // [units]  Vertical start
+    float   vE;             // [units]  Vertical end
+    int     veT;            // [units]  Vectical end tick
+    int     vsT;            // [units]  Vectical start tick
+};
+
 class FunctionGrapher final : public Rectangle
 {
 private:

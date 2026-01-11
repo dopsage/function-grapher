@@ -22,7 +22,7 @@ const float             Application::F_VIEW_DEFAULT_START_Y     (-2.0f);
 const int               Application::I_CANVAS_DRAW_RATE         (60);
 const int               Application::I_ENTRY_TEXT_SIZE          (24);
 const int               Application::I_STATUS_TEXT_SIZE         (16);
-const sgf::Milliseconds Application::MS_CURSOR_BLINK_DURATION   (250);
+const sgf::milliseconds Application::MS_CURSOR_BLINK_DURATION   (250);
 const std::string       Application::STR_CANVAS_TITLE           ("Function grapher");
 const sgf::Vector2D     Application::V_CANVAS_SIZE              ({ 1280, 720 });
 const sgf::Vector2D     Application::V_TEXT_INPUT_PADDING       ({ 10, 10 });

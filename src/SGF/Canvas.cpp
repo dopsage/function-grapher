@@ -5,7 +5,7 @@ using namespace sgf;
 
 const std::string Canvas::RES_FONT_FILE = "./res/font/pony.ttf";
 
-Milliseconds Canvas::getEpochTime() const
+milliseconds Canvas::getEpochTime() const
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>
     (std::chrono::system_clock::now().time_since_epoch()).count();
@@ -77,7 +77,7 @@ int Canvas::getDrawingRate() const
     return drawingRate;
 }
 
-Milliseconds Canvas::getElapsedTime() const
+milliseconds Canvas::getElapsedTime() const
 {
     return getEpochTime() - constructionTime;
 }

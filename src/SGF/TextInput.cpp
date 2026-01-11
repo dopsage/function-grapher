@@ -198,7 +198,7 @@ void TextInput::copy(Rectangle* other)
     setVerticalPadding  (oti->getVerticalPadding());                // verticalPadding
 }
 
-Milliseconds TextInput::getBlinkDuration() const
+milliseconds TextInput::getBlinkDuration() const
 {
     return blinkDuration;
 }
@@ -286,7 +286,7 @@ void TextInput::onTick(int tickCount)
     // Do the cursor blinking
     if(blinkDuration > 0)
     {
-        Milliseconds currentTime = getCanvasPtr()->getElapsedTime();
+        milliseconds currentTime = getCanvasPtr()->getElapsedTime();
         if(currentTime - lastBlinkTime >= blinkDuration)
         {
             cursor.setVisible(!cursor.isVisible());
@@ -297,7 +297,7 @@ void TextInput::onTick(int tickCount)
         cursor.setVisible(true);
 }
 
-void TextInput::setBlinkDuration(Milliseconds duration)
+void TextInput::setBlinkDuration(milliseconds duration)
 {
     blinkDuration = duration;
 }

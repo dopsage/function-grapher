@@ -8,12 +8,17 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+
 #include "SFML/Graphics.hpp"
+
+#include "SGF/Types.hpp"
+
 #include "SGF/Context.hpp"
+
 #include "SGF/InputParser.hpp"
 #include "SGF/Rectangle.hpp"
 #include "SGF/TextProperties.hpp"
-#include "SGF/Types.hpp"
+
 
 namespace sgf
 {
@@ -24,11 +29,11 @@ namespace sgf
 class Canvas final
 {
 private:
-    Milliseconds                        constructionTime;
+    milliseconds                        constructionTime;
     Context                             context;
     int                                 drawingRate;
     static const std::string            RES_FONT_FILE;
-    Milliseconds                        getEpochTime() const;
+    milliseconds                        getEpochTime() const;
     InputParser                         inputParser;
     bool                                active;
     Vector2D                            position;
@@ -45,7 +50,7 @@ public:
     void                add(Rectangle* rectanglePtr);
     Context*            getContextPtr();
     int                 getDrawingRate()                    const;
-    Milliseconds        getElapsedTime()                    const;
+    milliseconds        getElapsedTime()                    const;
     float 		        getHeight()                         const;
     InputParser*        getInputParserPtr();
     Vector2D            getPosition()                       const;

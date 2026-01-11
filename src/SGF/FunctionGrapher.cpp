@@ -38,7 +38,7 @@ void FunctionGrapher::onFunctionGrapherContextUse(Context* contextPtr, Rectangle
         contextPtr->line(
             { hcC, fg->getY() },
             { hcC, fg->getY() + fg->getHeight() },
-            { sgf::Byte(!hgC ? 255 : 0), 0, 0 },
+            { sgf::byte(!hgC ? 255 : 0), 0, 0 },
             2
         );
     }
@@ -48,7 +48,7 @@ void FunctionGrapher::onFunctionGrapherContextUse(Context* contextPtr, Rectangle
         contextPtr->line(
             { fg->getX(), vcC },
             { fg->getX() + fg->getWidth(), vcC },
-            { sgf::Byte(!vgC ? 255 : 0), 0, 0 },
+            { sgf::byte(!vgC ? 255 : 0), 0, 0 },
             2
         );
     }

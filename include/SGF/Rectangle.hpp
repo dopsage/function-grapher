@@ -6,11 +6,17 @@
 
 #include <stdexcept>
 #include "SFML/Graphics.hpp"
+
+#include "SGF/Context.hpp"
 #include "SGF/TextProperties.hpp"
+
 #include "SGF/Types.hpp"
 
 namespace sgf
 {
+
+typedef void (*KeyboardListener)(int keycode, wchar_t unicode, Rectangle* instancePtr, Canvas* canvasPtr);
+typedef void (*MouseListener)(MouseEvent event, Vector2D position, Rectangle* instancePtr, Canvas* canvasPtr);
 
 /* Literal SFML drawable rectangle (sf::RectangleShape) wrapper, that introduces features
  * of a primitive interactive rectangular area. Rectangle may declare use of text,

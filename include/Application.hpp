@@ -6,12 +6,8 @@
 #include "SGF/Button.hpp"
 #include "SGF/Canvas.hpp"
 #include "SGF/FunctionGrapher.hpp"
-#include "SGF/FunctionProperties.hpp"
-#include "SGF/Rectangle.hpp"
 #include "SGF/ScrollView.hpp"
 #include "SGF/TextInput.hpp"
-#include "SGF/TextProperties.hpp"
-#include "SGF/Types.hpp"
 #include "SGF/VList.hpp"
 #include "SGF/VSlider.hpp"
 #include "FunctionEntry.hpp"
@@ -40,7 +36,7 @@ private:
     static const int                I_CANVAS_DRAW_RATE;
     static const int                I_ENTRY_TEXT_SIZE;
     static const int                I_STATUS_TEXT_SIZE;
-    static const sgf::Milliseconds  MS_CURSOR_BLINK_DURATION;
+    static const sgf::milliseconds  MS_CURSOR_BLINK_DURATION;
     static const std::string        STR_CANVAS_TITLE;
     static const sgf::Vector2D      V_CANVAS_SIZE;
     static const sgf::Vector2D      V_TEXT_INPUT_PADDING;

@@ -11,6 +11,8 @@
 namespace sgf
 {
 
+typedef void (*VSliderListener)(float value, Rectangle* instancePtr, Canvas* canvasPtr);
+
 /* Provides a vertical slider functionality by means of two rectangles. The class
  * derives from `Rectangle` to act as the slider background, but it also stores
  * a rectangle instance that acts as the slider handle. */

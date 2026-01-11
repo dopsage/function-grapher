@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(FunctionGrapher VERSION 1.0.0 LANGUAGES CXX)
 
 # Require C++11
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Find SFML (version 2.5 or higher); look for `graphics`, `window` and `system` modules

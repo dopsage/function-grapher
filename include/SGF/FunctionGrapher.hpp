@@ -7,7 +7,9 @@
 #include <cmath>
 #include <stdexcept>
 #include <vector>
+
 #include "SGF/Context.hpp"
+#include "SGF/FunctionParser.hpp"
 #include "SGF/FunctionProperties.hpp"
 #include "SGF/Rectangle.hpp"
 #include "SGF/Types.hpp"
@@ -15,9 +17,13 @@
 namespace sgf
 {
 
+class Context;
+
 struct ViewProperties
 {
-    // Notice: these properties are updated by the setView call, writing them is silly
+    // Notice:  these properties are updated by the setView call, writing them is silly
+    //          there is no dedicated module for it because it is read-only and does not
+    //          need any better versatility than primitive struct.
     
     float   pixelsPerUnit;  // [pixels] Amount of screen pixels per one graph plane unit
     float   hS;             // [units]  Horizontal start

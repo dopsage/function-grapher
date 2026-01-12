@@ -5,7 +5,9 @@
 #define _INPUTPARSER_HPP
 
 #include <vector>
+
 #include "SFML/Graphics.hpp"
+
 #include "SGF/Rectangle.hpp"
 #include "SGF/Types.hpp"
 

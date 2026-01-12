@@ -3,11 +3,12 @@
 #define _APPLICATION_HPP
 
 #include <iostream>
+
 #include "SGF/Button.hpp"
 #include "SGF/Canvas.hpp"
 #include "SGF/FunctionGrapher.hpp"
+#include "SGF/Rectangle.hpp"
 #include "SGF/ScrollView.hpp"
-#include "SGF/TextInput.hpp"
 #include "SGF/VList.hpp"
 #include "SGF/VSlider.hpp"
 #include "FunctionEntry.hpp"

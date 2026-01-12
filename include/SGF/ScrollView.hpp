@@ -5,12 +5,17 @@
 #define _SCROLLVIEW_HPP
 
 #include <stdexcept>
+
+#include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
+#include "SGF/Types.hpp"
 #include "SGF/VList.hpp"
 #include "SGF/VSlider.hpp"
 
 namespace sgf
 {
+
+class Canvas;
 
 /* Combines VList and VSlider modules to compose vertically-organized rectangle list
  * that vertical position is controlled by the slider and aligned to the background

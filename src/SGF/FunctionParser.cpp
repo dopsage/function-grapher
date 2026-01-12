@@ -335,13 +335,13 @@ void FunctionParser::postfixize()
         operators.pop();
     }
     
-    // Print expression chunks
+    /*// Print expression chunks
     for(int eci = 0; eci < postfix.size(); eci++)
     {
         ExpressionChunk ec = postfix[eci];
         std::wcout << defString.substr(ec.index, ec.length) << L" ";
     }
-    std::wcout << std::endl;
+    std::wcout << std::endl;*/
     
     defChunks = postfix;
 }

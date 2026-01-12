@@ -7,19 +7,18 @@
 #include <cmath>
 
 #include "SFML/Graphics.hpp"
-#include "SGF/Types.hpp"
 
-//#include "SGF/Canvas.hpp"
+#include "SGF/Types.hpp"
 
 namespace sgf
 {
 
-typedef void (*ContextListener) (Context* contextPtr, Rectangle* instancePtr, Canvas* canvasPtr);
+class Canvas;
 
 /* DESC */
 class Context final
 {
-    // Allow canvas assign itself in purpose of drawing on it
+    // Allow canvas pass the SFML window reference in order to draw on it
     friend class Canvas;
 
 private:

@@ -3,6 +3,7 @@
 #define _FUNCTIONENTRY_HPP
 
 #include <string>
+
 #include "SGF/Button.hpp"
 #include "SGF/Canvas.hpp"
 #include "SGF/FunctionProperties.hpp"

@@ -11,6 +11,8 @@
 namespace sgf
 {
 
+class Canvas;
+
 typedef void (*VSliderListener)(float value, Rectangle* instancePtr, Canvas* canvasPtr);
 
 /* Provides a vertical slider functionality by means of two rectangles. The class
@@ -22,6 +24,7 @@ private:
 	Rectangle       handle;
 	float 		    handleOffsetY;
 	bool 		    isHandleMouseDown;
+    
 	static void     onHandleMouseEvent(MouseEvent event, Vector2D position, Rectangle* instancePtr, Canvas* canvasPtr);
     
     // The callback is invoked when the slider value changes

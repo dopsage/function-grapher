@@ -5,6 +5,7 @@
 #define _TEXTINPUT_HPP
 
 #include <vector>
+
 #include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
 #include "SGF/TextProperties.hpp"
@@ -12,6 +13,8 @@
 
 namespace sgf
 {
+    
+class Canvas;
 
 typedef void (*TextInputListener)(std::wstring content, Rectangle* instancePtr, Canvas* canvasPtr);
 

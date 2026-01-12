@@ -5,6 +5,8 @@
 #define _TEXTPROPERTIES_HPP
 
 #include <memory>
+#include <string>
+
 #include "SGF/Types.hpp"
 
 namespace sgf

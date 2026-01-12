@@ -4,12 +4,11 @@
 #ifndef _FUNCTIONPARSER_HPP
 #define _FUNCTIONPARSER_HPP
 
-#include <iostream>  // Debug only
 #include <cmath>
 #include <cstdint>
 #include <unordered_map>
-#include <unordered_set>
 #include <stack>
+#include <string>
 #include <vector>
 
 namespace sgf

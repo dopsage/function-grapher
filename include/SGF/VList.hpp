@@ -6,8 +6,10 @@
 
 #include <stdexcept>
 #include <vector>
+
 #include "SGF/Canvas.hpp"
 #include "SGF/Rectangle.hpp"
+#include "SGF/Types.hpp"
 
 namespace sgf
 {

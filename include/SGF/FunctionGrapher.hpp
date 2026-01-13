@@ -55,7 +55,7 @@ public:
     void            remove(FunctionProperties* function);
     Vector2D        toCanvasPlane(Vector2D grapherCoord)    const;
     Vector2D        toGrapherPlane(Vector2D canvasCoord)    const;
-    void            setView(float hS, float hE, float vS);  // horizontal start & end, vertical start
+    void            setView(float hS, float hE, float vS);
 };
 
 }

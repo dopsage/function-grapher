@@ -24,7 +24,11 @@ enum class  FPError
     ILLEGAL_EXPRESSION_CHARACTER    = 5
 };
 
-/* DESC */
+/* Utility class providing one with ability to work with functions that have
+ * their declaration, in form of a wide string, given. Both function name and
+ * argument name can be any combination of ascii letters, including capitalized ones.
+ * Parser may support symbols different than the argument name, that are contained
+ * in a functions expression part (after equal sign) - it is not hard to implement. */
 class FunctionParser
 {
 private:
@@ -33,13 +37,13 @@ private:
         uint16_t    index;  // Position in definition string at which the chunk starts
         uint32_t    length; // Indicates a chunk length to right from position `index`
         float       number; // If chunk is of number type, in the end this gets its numeric value
-        uint8_t     type;   // Type of the chunk, can tell what can be done with it
+        uint8_t     type;   // Type of the chunk, adheres to ECT_* class constants
     };
 
     static const wchar_t    CH_POINT;
     static const wchar_t    CH_EQUALS;
-    static const wchar_t    CH_LEFT_PARENTHESIS;
-    static const wchar_t    CH_RIGHT_PARENTHESIS;
+    static const wchar_t    CH_OPENING_PARENTHESIS;
+    static const wchar_t    CH_CLOSING_PARENTHESIS;
     static const uint8_t    ECT_OPERATOR;
     static const uint8_t    ECT_NUMBER;
     static const uint8_t    ECT_SYMBOL;
@@ -49,7 +53,7 @@ private:
     static const wchar_t    OP_POW;
     static const wchar_t    OP_SUB;
     
-    // Used to efficiently deal with operator precedence in postfixization process
+    // Used to efficiently deal with precedence in chunks postfixization process
     static const std::unordered_map<wchar_t, int> OP_SCORES;
     
     std::wstring                    argName;

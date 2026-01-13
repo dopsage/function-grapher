@@ -1,7 +1,9 @@
 
+#include <iostream>
 #include "Application.hpp"
 
 using namespace sgf;
+using namespace std;
 
 int main()
 {

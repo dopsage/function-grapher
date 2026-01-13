@@ -78,7 +78,7 @@ void FunctionGrapher::onFunctionGrapherContextUse(Context* contextPtr, Rectangle
                 { fg->toCanvasPlane({ left->first,  left->second  }) },
                 { fg->toCanvasPlane({ right->first, right->second }) },
                 { 0, 0, 255 },
-                2
+                3
             );
         }
     }

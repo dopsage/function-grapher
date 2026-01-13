@@ -5,8 +5,8 @@ using namespace sgf;
 
 const wchar_t   FunctionParser::CH_POINT                = L'.';
 const wchar_t   FunctionParser::CH_EQUALS               = L'=';
-const wchar_t   FunctionParser::CH_LEFT_PARENTHESIS     = L'(';
-const wchar_t   FunctionParser::CH_RIGHT_PARENTHESIS    = L')';
+const wchar_t   FunctionParser::CH_OPENING_PARENTHESIS  = L'(';
+const wchar_t   FunctionParser::CH_CLOSING_PARENTHESIS  = L')';
 const uint8_t   FunctionParser::ECT_OPERATOR            = 1;
 const uint8_t   FunctionParser::ECT_NUMBER              = 0;
 const uint8_t   FunctionParser::ECT_SYMBOL              = 2;
@@ -21,8 +21,8 @@ const std::unordered_map<wchar_t, int> FunctionParser::OP_SCORES =
     { OP_ADD, 0 },
     { OP_SUB, 0 },
     { OP_MUL, 1 },
-    { OP_DIV, 2 },
-    { OP_POW, 3 }
+    { OP_DIV, 1 },
+    { OP_POW, 2 }
 };
 
 bool FunctionParser::isLetter(wchar_t ch)
@@ -33,235 +33,234 @@ bool FunctionParser::isLetter(wchar_t ch)
 
 void FunctionParser::chunkize()
 {
-    int         gatheredNames   = 0;
+	static const int ECT_CPU = 100;	// Closing Parenthesis Unload trigger
+		
+    int         collectedNames	= 0;
+    int 		prevChunkType   = ECT_OPERATOR;	// This setting triggers appropriates
     int         openParentheses = 0;
-    uint32_t    savedLength     = 0;
-    uint16_t    savedPos        = 0;
+    uint32_t    chunkLength     = 0;
+    uint16_t    chunkPos 		= 0;
     bool        wasEqualSign    = false;
     bool        wasPoint        = false;
     uint16_t    defLength       = defString.length();
-    for(uint16_t pos = 0; pos <= defLength; pos++)
+    for(uint16_t currPos = 0; currPos <= defLength; currPos++)
     {
-        // Dollar symbol is used to let all checks run, and optionally unload during last iteration
-        wchar_t tar = (pos == defLength ? L'$' : defString[pos]);
+        /* Dollar symbol is used to let all checks run, and in the end lets
+         * the parser unload itself of any chunk processing occurring. */
+        wchar_t ch = (currPos == defLength ? L'$' : defString[currPos]);
         
         if(wasEqualSign)
         {
             /*** Process function expression ***/
 
             bool        isCharacterIllegal  = true;
-            uint32_t    newGN               = gatheredNames;
+            uint32_t    currChunkType;
 
-            // @@@ 1. Check for symbol
-            if(isLetter(tar))
+            // [ 1 ] Check for a symbol
+            if(isLetter(ch))
             {
-                if(gatheredNames == 2)
+                if(prevChunkType == ECT_NUMBER)
                 {
-                    // Symbol just after the numeric? there must be some operator
+                    // [ ! ] Letter just after a number
                     error = FPError::INVALID_EXPRESSION_SYNTAX;
                     break;
                 }
-                
-                if(gatheredNames == 0)
+                else if(prevChunkType == ECT_OPERATOR)
                 {
-                    // Started reading some symbol
-                    savedPos    = pos;
-                    savedLength = 0;
-                    newGN       = 1;
+					// Started reading some symbol ...
+                    chunkPos    	= currPos;
+                    chunkLength 	= 0;
+                    currChunkType	= ECT_SYMBOL;
                 }
                 
                 isCharacterIllegal = false;
             }
-            else if(gatheredNames == 1)
+            else if(prevChunkType == ECT_SYMBOL)
             {
-                /* Until now, some symbol was being gathered. Validate it and in
-                 * positive scenario save it. */
+                /* Until now, some symbol was being collected. Now validate
+                 * the collection and, in positive outcome, save it. */
                 
-                std::wstring symbol = defString.substr(savedPos, savedLength);
+                std::wstring symbol = defString.substr(chunkPos, chunkLength);
                 if(symbol != argName)
                 {
                     /* For now only argument is considered the right symbol, but in
-                     * the future custom symbols like pi or e can be introduced somehow. */
+                     * the future custom symbols like pi or e can be introduced effortlessly. */
                     error = FPError::UNDEFINED_EXPRESSION_SYMBOL;
                     break;
                 }
                 
-                defChunks.push_back({ savedPos, savedLength, 0.0f, ECT_SYMBOL });
+                // Register the chunk of type number
+                defChunks.push_back({ chunkPos, chunkLength, 0.0f, ECT_SYMBOL });
             }
             
-            // @@@ 2. Check for numeric
-            bool isPoint = (tar == CH_POINT);
-            if(isPoint || (tar > 0x2f && tar < 0x3a))
+            // [ 2 ] Check for a number
+            bool isPoint = (ch == CH_POINT);
+            if(isPoint || (ch > 0x2f && ch < 0x3a))
             {
                 if(isPoint)
                 {
                     if(wasPoint)
                     {
-                        // Two points in one numeric? impossibe
+                        // [ ! ] Two points in a single number chunk
                         error = FPError::INVALID_EXPRESSION_SYNTAX;
                         break;
                     }
-                    else
-                        wasPoint = true;
-                }
                     
-                
-                if(gatheredNames == 1)
+                    wasPoint = true;
+                }
+				
+                if(prevChunkType == ECT_SYMBOL)
                 {
-                    // Numeric just after the symbol? there must be some operator
+                    // [ ! ] Number just after a symbol
                     error = FPError::INVALID_EXPRESSION_SYNTAX;
                     break;
                 }
-                
-                if(gatheredNames == 0)
+                else if(prevChunkType == ECT_OPERATOR)
                 {
-                    // Started reading some numeric
-                    savedPos    = pos;
-                    savedLength = 0;
-                    newGN       = 2;
+                    // Started reading some number
+                    chunkPos    	= currPos;
+                    chunkLength 	= 0;
+                    currChunkType  	= ECT_NUMBER;
                 }
                 
                 isCharacterIllegal = false;
             }
-            else if(gatheredNames == 2)
+            else if(prevChunkType == ECT_NUMBER)
             {
-                if(wasPoint && savedLength == 1)
+                if(wasPoint && chunkLength == 1)
                 {
-                    // Point does not mean anything alone
+                    // [ ! ] Lone point
                     error = FPError::INVALID_EXPRESSION_SYNTAX;
                     break; 
                 }
                 
-                // Until now, some numeric was being gathered, save it.
-                std::wstring number = defString.substr(savedPos, savedLength);
-                defChunks.push_back({ savedPos, savedLength, std::stof(number), ECT_NUMBER });
+                // Until now, some numeric was being collected, try saving it.
+                std::wstring number = defString.substr(chunkPos, chunkLength);
+                defChunks.push_back({ chunkPos, chunkLength, std::stof(number), ECT_NUMBER });
                 wasPoint            = false;
             }
             
-            // @@@ 3. Check for operator
-            bool isLeftPar  = (tar == CH_LEFT_PARENTHESIS);
-            bool isRightPar = (tar == CH_RIGHT_PARENTHESIS);
-            if( isLeftPar       ||
-                isRightPar      ||
-                tar == OP_ADD   ||
-                tar == OP_DIV   ||
-                tar == OP_MUL   ||
-                tar == OP_POW   ||
-                tar == OP_SUB)
+            // [ 3 ] Check for an operator
+            bool isOpeningPar  	= (ch == CH_OPENING_PARENTHESIS);
+            bool isClosingPar 	= (ch == CH_CLOSING_PARENTHESIS);
+            if( isOpeningPar   	||
+                isClosingPar   	||
+                ch == OP_ADD	||
+                ch == OP_DIV   	||
+                ch == OP_MUL   	||
+                ch == OP_POW   	||
+                ch == OP_SUB)
             {
-                if(!isLeftPar && !isRightPar && gatheredNames == 0)
+                if(( isOpeningPar && prevChunkType == ECT_CPU) ||
+					!isOpeningPar && !isClosingPar && prevChunkType == ECT_OPERATOR)
                 {
-                    // Operator just after operator? no way
+					// [ ! ] Opening parenthesis just after closing the other
+                    // [ ! ] Or operator just after operator
                     error = FPError::INVALID_EXPRESSION_SYNTAX;
                     break;
                 }
                 
-                // Processed character is an operator
-                defChunks.push_back({ pos, 1, 0.0f, ECT_OPERATOR });
+                // It is immediatelly known that processed character is an operator
+                defChunks.push_back({ currPos, 1, 0.0f, ECT_OPERATOR });
                 
-                /* After closing parenthessis, there must be an operator. For this
-                 * purpose, completely unique flag value is used (3) to not trigger above ones. */
-                newGN               = isRightPar ? 3 : 0;
+                /* After closing parenthessis, there must be some operator.
+                 * Use special type in order to not trigger checks 1 & 2 (above). */
+				currChunkType 		= isClosingPar ? ECT_CPU : ECT_OPERATOR;
                 
                 isCharacterIllegal  = false;
-                openParentheses    += isLeftPar ? +1 : (isRightPar ? -1 : 0);
+                openParentheses    += isOpeningPar ? +1 : (isClosingPar ? -1 : 0);
             }
             
-            if( (isCharacterIllegal && pos != defLength) ||
-                (openParentheses != 0 && pos == defLength))
+            if(isCharacterIllegal && currPos != defLength)
             {
-                /* 1. Illegal character, unless it is last (unloading) iteration.
-                 * 2. Parentheses were not paired properly. */
+                // [ ! ] Illegal character, unless it is last (unloading) iteration
                 error = FPError::ILLEGAL_EXPRESSION_CHARACTER;
                 break;
             }
-            else if(defChunks.size() == 0 && pos == defLength)
-            {
-                // Empty expression is not allowed
+            else if(currPos == defLength && (defChunks.size() == 0 || openParentheses != 0))
+			{
+                // [ ! ] Empty expression
+                // [ ! ] Or unloading is performed, but parentheses are impaired
                 error = FPError::INVALID_EXPRESSION_SYNTAX;
                 break;
             }
             else
             {
-                gatheredNames = newGN;
-                savedLength++;
+				// Everything is fine, continue processing next expression character
+                prevChunkType = currChunkType;
+                chunkLength++;
             }
         }
         else
         {
             /*** Process function definition ***/
             
-            if(!isLetter(tar))
+            if(!isLetter(ch))
             {
-                if(tar == CH_LEFT_PARENTHESIS)
+                if(ch == CH_OPENING_PARENTHESIS)
                 {
-                    if(gatheredNames > 0 || savedLength == 0)
+                    if(collectedNames > 0 || chunkLength == 0)
                     {
-                        /* 1. Argument name is being gathered (or is finished already)
-                         * 2. Length of a function name is 0 */
+                        /* [ ! ] Argument name is being (or is already) collected
+                         * [ ! ] Length of a function name is missing */
                         error = FPError::INVALID_DECLARATION_SYNTAX;
                         break;
                     }
                     
-                    /* Until now, the function name was being gathered. Save it and
-                     * setup saved data for argument name gathering. */
-                    gatheredNames++;
-                    funName         = defString.substr(savedPos, savedLength);
-                    savedLength     = 0;
-                    savedPos        = pos + 1;
+                    /* Until now, the function name was being collected.
+                     * Save it and setup chunk for argument name collection. */
+                    collectedNames++;
+                    funName         = defString.substr(chunkPos, chunkLength);
+                    chunkLength     = 0;
+                    chunkPos        	= currPos + 1;
                     continue;
                 }
-                else if(tar == CH_RIGHT_PARENTHESIS)
+                else if(ch == CH_CLOSING_PARENTHESIS)
                 {
-                    if(gatheredNames == 1 && savedLength > 0)
-                    {
-                        // This time, the argument name is already gathered.
-                        gatheredNames++;
-                        argName = defString.substr(savedPos, savedLength);
-                        continue;
-                    }
-                    else
-                    {
-                        /* 1. Collection of argument name did not even start, cannot finish it
-                         * 2. Collection of argument name is already finished */
+					if(collectedNames < 1 || chunkLength == 0)
+					{
+						/* [ ! ] Did not collect function name (impossible at this point)
+                         * [ ! ] Length of an argument name is missing */
                         error = FPError::INVALID_DECLARATION_SYNTAX;
                         break;
-                    }
+					}
+						
+					// This time, the argument name is already collected.
+					collectedNames++;
+					argName 		= defString.substr(chunkPos, chunkLength);
+					continue;
                 }
-                else if(tar == CH_EQUALS)
+                else if(ch == CH_EQUALS)
                 {
-                    if(gatheredNames == 2)
+                    if(collectedNames < 2)
                     {
-                        // Prepare saved data for expression processing and go on with it
-                        gatheredNames   = 0;
-                        savedLength     = 0;
-                        savedPos        = pos + 1;
-                        wasEqualSign    = true;
-                        continue;
-                    }
-                    else
-                    {
-                        // Starting expression without function|argument name collected
+						// [ ! ] Did not collect both names (of function and of argument)
                         error = FPError::INVALID_DECLARATION_SYNTAX;
                         break;
-                    }
+					}
+					
+					// Prepare for expression processing and continue to it
+					chunkLength     = 0;
+					chunkPos        = currPos + 1;
+					wasEqualSign    = true;
+					continue;
                 }
                 else
                 {
                     /* Characters different than letters, parenthesses and equals are
-                     * not allowed in function declaration */
+                     * not allowed in function declaration. */
                     error = FPError::ILLEGAL_DECLARATION_CHARACTER;
                     break;
                 }
             }
-            else if(gatheredNames == 2)
+            else if(collectedNames == 2)
             {
-                // Name continuation after closing parenthesis? what
+                // [ ! ] Letters after closing parenthesis (declaration end)
                 error = FPError::INVALID_DECLARATION_SYNTAX;
                 break;
             }
             
-            savedLength++;
+            chunkLength++;
         }
     }
 }
@@ -271,10 +270,10 @@ void FunctionParser::postfixize()
     // Rearange expression chunks in vector to postfix form, and convert numerics in
     // number typed ECs, so it is ready for getValue method to use for value calculation ...
     
-    std::vector<ExpressionChunk> postfix;
-    std::stack<ExpressionChunk> operators;
-    std::stack<int> operatorContext;
-    operatorContext.push(0);
+    std::vector<ExpressionChunk> 	postfixedChunks;
+    std::stack<ExpressionChunk> 	operatorStack;
+    std::stack<int> 				operatorContexts;
+    operatorContexts.push(0);
     
     for(int eci = 0; eci < defChunks.size(); eci++)
     {
@@ -282,68 +281,60 @@ void FunctionParser::postfixize()
         
         if(ec.type == ECT_OPERATOR)
         {
-            wchar_t currOperChar    = defString[ec.index];
-            bool    unloadContext   = false;
+            wchar_t currOperChar = defString[ec.index];
             
-            if(currOperChar == CH_LEFT_PARENTHESIS)
+            if(currOperChar == CH_OPENING_PARENTHESIS)
             {
-                // Open new stack context by creating new record of its length on context stack
-                operatorContext.push(0);
+                // Open new operator context by creating new record of its length (initially 0)
+                operatorContexts.push(0);
+                
                 continue;
             }
-            else if(currOperChar == CH_RIGHT_PARENTHESIS)
+            else if(currOperChar == CH_CLOSING_PARENTHESIS)
             {
-                // Mark the current operator stack context for unloading and update context stack
-                unloadContext = true;
+                // Unload the whole operator context opened earlier
+                int ocLength = operatorContexts.top();
+				while(ocLength--)
+				{
+					postfixedChunks.push_back(operatorStack.top());
+					operatorStack.pop();
+				}
+				
+				// Root context is not popped, but zeroed instead
+				if(operatorContexts.size() == 1)	operatorContexts.top() = 0;
+				else 								operatorContexts.pop();
+				
+				continue;
             }
-            
-            // notice: it is like this: currOperChar < lastOperChar(never parenthesiss)
-            if(unloadContext || (!operators.empty() && OP_SCORES.at(currOperChar) < OP_SCORES.at(defString[operators.top().index])))
+            else if(!operatorStack.empty() && operatorContexts.top() > 0 && OP_SCORES.at(currOperChar) < OP_SCORES.at(defString[operatorStack.top().index]))
             {
-                int ocLength = operatorContext.top();
-                
-                // Encountered lower-ranked operator, thus unload the current operator stack context
-                while(ocLength--)
-                {
-                    postfix.push_back(operators.top());
-                    operators.pop();
-                }
-                
-                if(unloadContext && operatorContext.size() != 1)
-                    operatorContext.pop();  // unloading non-root context needs stack erasal 
-                else
-                    operatorContext.top() = 0; 
+				/* Encountered an operator that has less power than the last
+				 * one in the current operator context. Exchange it with the
+				 * more powerful one. */
+				postfixedChunks.push_back(operatorStack.top());
+				operatorStack.pop();
+				operatorContexts.top()--;
             }
-            
-            // Put the current operator onto stack, but beaware that right parenthesis is not an operator
-            // and it must be taken into account by checking unload flag.
-            if(!unloadContext)
-            {
-                operators.push(ec);
-                operatorContext.top()++;
-            }
+
+			// If execution made here, it means the operator needs to be simply pushed
+			operatorStack.push(ec);
+			operatorContexts.top()++;			
         }
         else
         {
-            postfix.push_back(ec);
+			// Symbols and numbers are simply pushed
+            postfixedChunks.push_back(ec);
         }
     }
-    // Unload operators stack to output form in the end
-    while(!operators.empty())
+    
+    // Unload remainders in the operator stack 
+    while(!operatorStack.empty())
     {
-        postfix.push_back(operators.top());
-        operators.pop();
+        postfixedChunks.push_back(operatorStack.top());
+        operatorStack.pop();
     }
     
-    /*// Print expression chunks
-    for(int eci = 0; eci < postfix.size(); eci++)
-    {
-        ExpressionChunk ec = postfix[eci];
-        std::wcout << defString.substr(ec.index, ec.length) << L" ";
-    }
-    std::wcout << std::endl;*/
-    
-    defChunks = postfix;
+    defChunks = postfixedChunks;
 }
 
 FunctionParser::FunctionParser(std::wstring defString) :
@@ -394,30 +385,32 @@ std::wstring FunctionParser::getFunctionName() const
 
 float FunctionParser::getValue(float argument) const
 {
-    if(error != FPError::NONE) return 123.456f;
+    if(error != FPError::NONE)
+		return 14.052025f;
     
     // Single chunk case
     if(defChunks.size() == 1)
         return defChunks[0].type == ECT_SYMBOL ? argument : defChunks[0].number;
     
     std::vector<ExpressionChunk> defChunksCopy = defChunks;
-    int offset = 0;
-    
+    int tripletOffset = 0;
     while(defChunksCopy.size() != 1)
     {
         ExpressionChunk* triplet[3] =
         {
-            &defChunksCopy[offset],
-            &defChunksCopy[offset + 1],
-            &defChunksCopy[offset + 2]
+            &defChunksCopy[tripletOffset + 0],
+            &defChunksCopy[tripletOffset + 1],
+            &defChunksCopy[tripletOffset + 2]
         };
         
         if(triplet[0]->type != ECT_OPERATOR && triplet[1]->type != ECT_OPERATOR && triplet[2]->type == ECT_OPERATOR)
         {
+			// Detected triplet: symbol/number | symbol/number | operator
             float leftNumber    = triplet[0]->type == ECT_SYMBOL ? argument : triplet[0]->number;
             float rightNumber   = triplet[1]->type == ECT_SYMBOL ? argument : triplet[1]->number;
             float answer        = 0.0f;
             
+            // Match operation for the triplet
             switch(defString[triplet[2]->index])
             {
                 case OP_ADD:
@@ -437,14 +430,18 @@ float FunctionParser::getValue(float argument) const
                     break;
             }
             
-            // Exchange calculation with answer, then start whole processing again by resetting the offset
-            defChunksCopy.erase(defChunksCopy.begin() + offset, defChunksCopy.begin() + offset + 3);
-            defChunksCopy.insert(defChunksCopy.begin() + offset, { 0, 0, answer, ECT_NUMBER });
-            offset = 0;
+            /* Exchange calculation with answer, then start whole processing
+             * again by resetting the triplet offset. */
+            defChunksCopy.erase (defChunksCopy.begin() + tripletOffset, defChunksCopy.begin() + tripletOffset + 3);
+            defChunksCopy.insert(defChunksCopy.begin() + tripletOffset, { 0, 0, answer, ECT_NUMBER });
+            tripletOffset = 0;
         }
         else
-            offset++;
+        {
+			tripletOffset++;
+		}
     }
     
+    // The last chunk remaining is the function output
     return defChunksCopy[0].number;
 }

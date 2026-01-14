@@ -177,10 +177,11 @@ void FunctionParser::chunkize()
                 error = FPError::ILLEGAL_EXPRESSION_CHARACTER;
                 break;
             }
-            else if(currPos == defLength && (defChunks.size() == 0 || openParentheses != 0))
+            else if(currPos == defLength && (defChunks.size() == 0 || openParentheses != 0 || currChunkType == ECT_OPERATOR))
 			{
                 // [ ! ] Empty expression
                 // [ ! ] Or unloading is performed, but parentheses are impaired
+                // [ ! ] Or there is operator with nothing on right
                 error = FPError::INVALID_EXPRESSION_SYNTAX;
                 break;
             }
@@ -265,6 +266,7 @@ void FunctionParser::chunkize()
     }
 }
 
+//#include<iostream>
 void FunctionParser::postfixize()
 {
     // Rearange expression chunks in vector to postfix form, and convert numerics in
@@ -306,14 +308,20 @@ void FunctionParser::postfixize()
 				
 				continue;
             }
-            else if(!operatorStack.empty() && operatorContexts.top() > 0 && OP_SCORES.at(currOperChar) < OP_SCORES.at(defString[operatorStack.top().index]))
+            else while(!operatorStack.empty() && operatorContexts.top() > 0)
             {
-				/* Encountered an operator that has less power than the last
-				 * one in the current operator context. Exchange it with the
-				 * more powerful one. */
-				postfixedChunks.push_back(operatorStack.top());
-				operatorStack.pop();
-				operatorContexts.top()--;
+                wchar_t topOperChar    = defString[operatorStack.top().index];
+                int     currScore      = OP_SCORES.at(currOperChar);
+                int     topScore       = OP_SCORES.at(topOperChar);
+                
+                if(currScore <= topScore)
+                {
+                    postfixedChunks.push_back(operatorStack.top());
+                    operatorStack.pop();
+                    operatorContexts.top()--;
+                }
+                else
+                    break;
             }
 
 			// If execution made here, it means the operator needs to be simply pushed
@@ -333,6 +341,11 @@ void FunctionParser::postfixize()
         postfixedChunks.push_back(operatorStack.top());
         operatorStack.pop();
     }
+
+    // Print postfix string
+    //for(int i=0;i<postfixedChunks.size();i++)
+    //    std::wcout<<defString.substr(postfixedChunks[i].index,postfixedChunks[i].length)<<L" ";
+    //std::wcout << L"\n\n";
     
     defChunks = postfixedChunks;
 }
@@ -392,6 +405,7 @@ float FunctionParser::getValue(float argument) const
     if(defChunks.size() == 1)
         return defChunks[0].type == ECT_SYMBOL ? argument : defChunks[0].number;
     
+    // We need to work with the leftmost valid chunk triplets
     std::vector<ExpressionChunk> defChunksCopy = defChunks;
     int tripletOffset = 0;
     while(defChunksCopy.size() != 1)

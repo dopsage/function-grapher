@@ -12,7 +12,7 @@
 #include "SGF/VList.hpp"
 
 /* DESC */
-class FunctionEntry : public sgf::Rectangle
+class FunctionEntry final : public sgf::Rectangle
 {
 private:
     sgf::Button             button;

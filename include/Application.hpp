@@ -13,6 +13,7 @@
 #include "SGF/VSlider.hpp"
 #include "FunctionEntry.hpp"
 
+/* DESC */
 class Application final
 {
 private:

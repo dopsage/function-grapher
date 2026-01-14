@@ -36,6 +36,7 @@ struct ViewProperties
     int     vsT;            // [units]  Vectical start tick
 };
 
+/* DESC */
 class FunctionGrapher final : public Rectangle
 {
 private:

@@ -82,13 +82,9 @@ void FunctionGrapher::onFunctionGrapherContextUse(Context* contextPtr, Rectangle
             );
         }
     }
-    
-    // Debug lines
-    //contextPtr->line({fg->getX(), fg->getY()+fg->getHeight()/2},{fg->getX()+fg->getWidth(), fg->getY()+fg->getHeight()/2}, {0,255,0}, 2);
-    //contextPtr->line({fg->getX()+fg->getWidth()/2, fg->getY()},{fg->getX()+fg->getWidth()/2, fg->getY()+fg->getHeight()}, {0,255,0}, 2);
 }
 
-const int FunctionGrapher::PIXELS_PER_STEP = 8;
+const int FunctionGrapher::PIXELS_PER_STEP = 4;
 
 FunctionGrapher::   FunctionGrapher() :
                     Rectangle::Rectangle(),

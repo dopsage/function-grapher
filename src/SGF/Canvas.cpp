@@ -3,7 +3,7 @@
 
 using namespace sgf;
 
-const std::string Canvas::RES_FONT_FILE = "./res/font/pony.ttf";
+const std::string Canvas::RES_FONT_FILE = "./res/font/noto.ttf";
 
 milliseconds Canvas::getEpochTime() const
 {

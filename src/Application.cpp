@@ -10,15 +10,16 @@ const sgf::Color3D      Application::C_WHITE                    ({ 0xff, 0xff, 0
 const float             Application::F_CURSOR_WIDTH             (2.0f);
 const float             Application::F_FUNCTION_ENTRY_HEIGHT    (50.0f);
 const float             Application::F_SCROLL_VIEW_WIDTH        (300.0f);
-const float             Application::F_SLIDER_HANDLE_HEIGHT     (50.0f);
+const float             Application::F_SLIDER_HANDLE_HEIGHT     (200.0f);
 const float             Application::F_SLIDER_WIDTH             (25.0f);
 const float             Application::F_STATUS_BAR_HEIGHT        (50.0f);
-const float             Application::F_STATUS_MOUSE_INFO_WIDTH  (140.0f);
+const float             Application::F_STATUS_MOUSE_INFO_WIDTH  (200.0f);
 const float             Application::F_STATUS_ZOOM_INFO_WIDTH   (100.0f);
 const float             Application::F_TOOLBAR_BUTTON_MARGIN    (30.0f);
 const float             Application::F_VIEW_DEFAULT_END_X       (+4.0f);
 const float             Application::F_VIEW_DEFAULT_START_X     (-4.0f);
 const float             Application::F_VIEW_DEFAULT_START_Y     (-2.0f);
+const int               Application::I_BUTTON_ICON_MARGIN       (10);
 const int               Application::I_CANVAS_DRAW_RATE         (60);
 const int               Application::I_ENTRY_TEXT_SIZE          (24);
 const int               Application::I_STATUS_TEXT_SIZE         (16);
@@ -26,7 +27,7 @@ const sgf::milliseconds Application::MS_CURSOR_BLINK_DURATION   (250);
 const std::string       Application::STR_CANVAS_TITLE           ("Function grapher");
 const sgf::Vector2D     Application::V_CANVAS_SIZE              ({ 1280, 720 });
 const sgf::Vector2D     Application::V_TEXT_INPUT_PADDING       ({ 10, 10 });
-const sgf::Vector2D     Application::V_TOOLBAR_BUTTON_SIZE      ({ 50, 50 });
+const sgf::Vector2D     Application::V_TOOLBAR_BUTTON_SIZE      ({ 40, 40 });
 
 bool                    Application::isViewMouseDown            (false);
 FunctionEntry           Application::fePrefab;
@@ -38,6 +39,70 @@ float                   Application::viewStartX                 (F_VIEW_DEFAULT_
 float                   Application::viewStartY                 (F_VIEW_DEFAULT_START_Y);
 float                   Application::zoomScale                  (1.0f);
 
+void Application::drawCrossSign(sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
+{
+    contextPtr->line(
+        { instancePtr->getX() + I_BUTTON_ICON_MARGIN, instancePtr->getY() + I_BUTTON_ICON_MARGIN },
+        { instancePtr->getX() + instancePtr->getWidth() - I_BUTTON_ICON_MARGIN, instancePtr->getY() + instancePtr->getHeight() - I_BUTTON_ICON_MARGIN },
+        C_WHITE,
+        4
+    );
+    contextPtr->line(
+        { instancePtr->getX() + I_BUTTON_ICON_MARGIN, instancePtr->getY() + instancePtr->getHeight() - I_BUTTON_ICON_MARGIN },
+        { instancePtr->getX() + instancePtr->getWidth() - I_BUTTON_ICON_MARGIN, instancePtr->getY() + I_BUTTON_ICON_MARGIN },
+        C_WHITE,
+        4
+    );
+}
+
+void Application::drawPlusSign(sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
+{
+    float plusArmLength = instancePtr->getHeight() - 2 * I_BUTTON_ICON_MARGIN;
+    contextPtr->line(
+        {
+            instancePtr->getX() + instancePtr->getWidth() / 2,
+            instancePtr->getY() + I_BUTTON_ICON_MARGIN
+        },
+        {
+            instancePtr->getX() + instancePtr->getWidth() / 2,
+            instancePtr->getY() + instancePtr->getHeight() - I_BUTTON_ICON_MARGIN
+        },
+        C_WHITE,
+        4
+    );
+    contextPtr->line(
+        {
+            instancePtr->getX() + instancePtr->getWidth() / 2 - plusArmLength / 2,
+            instancePtr->getY() + instancePtr->getHeight() / 2
+        },
+        {
+            instancePtr->getX() + instancePtr->getWidth() / 2 + plusArmLength / 2,
+            instancePtr->getY() + instancePtr->getHeight() / 2
+        },
+        C_WHITE,
+        4
+    );
+}
+
+void Application::drawMinusSign(sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
+{
+// NOTICE: Literally the same part as the second line in drawPlusSign ... maybe introduce some meta for context callbacks?
+    float minusArmLength = instancePtr->getHeight() - 2 * I_BUTTON_ICON_MARGIN;
+    contextPtr->line(
+        {
+            instancePtr->getX() + instancePtr->getWidth() / 2 - minusArmLength / 2,
+            instancePtr->getY() + instancePtr->getHeight() / 2
+        },
+        {
+            instancePtr->getX() + instancePtr->getWidth() / 2 + minusArmLength / 2,
+            instancePtr->getY() + instancePtr->getHeight() / 2
+        },
+        C_WHITE,
+        4
+    );
+}
+
+// NOTICE: This method gets tZoom text disappearing when called, but its text properties are unchanged ...
 void Application::onAddEntryButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
 {
     // Retrieve scroll view reference from the button metadata, and from it retrieve the function grapher's
@@ -219,27 +284,31 @@ void Application::onZoomOutButtonEvent(sgf::Rectangle* instancePtr, sgf::Canvas*
 void Application::configureInstances()
 {
     // Add function entry (button)
-    bAddEntry.setColor      (C_GREEN);
-    bAddEntry.setListener   (onAddEntryButtonEvent);
-    bAddEntry.setMetaPtr    (&svFunctions);     // Scroll view gets updated on click
-    bAddEntry.setSize       ({ F_SCROLL_VIEW_WIDTH - F_SLIDER_WIDTH, F_FUNCTION_ENTRY_HEIGHT });
+    bAddEntry.setColor          (C_GREEN);
+    bAddEntry.setContextListener(Application::drawPlusSign);
+    bAddEntry.setListener       (onAddEntryButtonEvent);
+    bAddEntry.setMetaPtr        (&svFunctions);     // Scroll view gets updated on click
+    bAddEntry.setSize           ({ F_SCROLL_VIEW_WIDTH - F_SLIDER_WIDTH, F_FUNCTION_ENTRY_HEIGHT });
     
     // Reset graph view (button)
-    bResetGraph.setColor    (C_BLUE);
-    bResetGraph.setListener (onResetViewButtonEvent);
-    bResetGraph.setMetaPtr  (&rZoom);
-    bResetGraph.setSize     (V_TOOLBAR_BUTTON_SIZE);
+    bResetGraph.setColor            (C_BLUE);
+    bResetGraph.setContextListener  (Application::drawCrossSign);
+    bResetGraph.setListener         (onResetViewButtonEvent);
+    bResetGraph.setMetaPtr          (&rZoom);
+    bResetGraph.setSize             (V_TOOLBAR_BUTTON_SIZE);
 
     // Zoom graph view in (button)
-    bZoomIn.copy            (&bResetGraph);
-    bZoomIn.setMetaPtr      (&rZoom);
-    bZoomIn.setColor        (C_RED);
-    bZoomIn.setListener     (onZoomInButtonEvent);
+    bZoomIn.copy                (&bResetGraph);
+    bZoomIn.setContextListener  (Application::drawPlusSign);
+    bZoomIn.setMetaPtr          (&rZoom);
+    bZoomIn.setColor            (C_RED);
+    bZoomIn.setListener         (onZoomInButtonEvent);
 
     // Zoom graph view out (button)
-    bZoomOut.copy           (&bResetGraph);
-    bZoomOut.setColor       (C_GREEN);
-    bZoomOut.setListener    (onZoomOutButtonEvent);
+    bZoomOut.copy               (&bResetGraph);
+    bZoomOut.setContextListener (Application::drawMinusSign);
+    bZoomOut.setColor           (C_GREEN);
+    bZoomOut.setListener        (onZoomOutButtonEvent);
     
     // Main window (canvas)
     canvas.setDrawingRate   (I_CANVAS_DRAW_RATE);
@@ -259,23 +328,13 @@ void Application::configureInstances()
     fePrefab.getTextInputPtr()->setFieldText        (nullptr);                  // Prefab variable
     fePrefab.getTextInputPtr()->setFilterPtr        (&sgf::IF_ALL);
     fePrefab.getTextInputPtr()->setLeftPadding      (V_TEXT_INPUT_PADDING.x);
-    //fePrefab.getTextInputPtr()->setListener         (onEntryTextInputEvent);
     fePrefab.getTextInputPtr()->setVerticalPadding  (V_TEXT_INPUT_PADDING.y);
     fePrefab.getTextInputPtr()->getCursorPtr()->setColor(C_BLACK);
     fePrefab.getTextInputPtr()->getFieldPtr()->setColor (C_RED);
     
-    // Test of custom look using context graphics, each prefab instance will do the same!
-    /*fePrefab.getTextInputPtr()->getFieldPtr()->setContextListener([](sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr)
-    {
-        sgf::Rectangle* r = (sgf::Rectangle*)instancePtr;
-        
-        contextPtr->line(
-            r->getPosition(),
-            { r->getX() + r->getWidth(), r->getY() + r->getHeight() },
-            C_WHITE,
-            instancePtr->getId() % 8 + 1
-        );
-    });*/
+    /* Test of custom look using context graphics, each prefab instance will do the same!
+     * This just draws a cross over the removal button ... it is quite easy imo. */
+    fePrefab.getButtonPtr()->setContextListener(Application::drawCrossSign);
 
     // Graph view background (rectangle)
     fgGraphsView.setColor           (C_WHITE);
@@ -370,19 +429,10 @@ int Application::run()
     // Initialize the grapher view
     fgGraphsView.setView(viewStartX, viewEndX, viewStartY);
     
-// SANDBOX START
-    
-// TODO: Make updating zoom text some function bc it is done in three places!
-    
-    // Add 10 function entries at start by emulating add button press
-    for(int i = 0; i < 10; i++)
-        bAddEntry.getListener()(&bAddEntry, &canvas);
-    
-// SANDBOX END
-    
     while(canvas.isActive() && canvas.tick())
     {
-        
+        //std::wcout << canvas.getTickCount() << ": " << tZoom.color.r << " " << tZoom.color.g << " " << tZoom.color.b << "\n";
+        //std::wcout << " " << tZoom.length << " " << tZoom.content << std::endl;
     }
     
     return 0;

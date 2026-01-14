@@ -17,6 +17,9 @@ namespace sgf
 
 class Canvas;
 
+// NOTICE:  It would be nice to have VList listener so scroll view knows when to
+//          update its slider height accordingly, when vlist member list changes ...
+
 /* Combines VList and VSlider modules to compose vertically-organized rectangle list
  * that vertical position is controlled by the slider and aligned to the background
  * rectangle (scroll view instance itself) top and bottom depending on the slider value. */

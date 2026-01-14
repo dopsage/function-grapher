@@ -34,6 +34,7 @@ private:
     static const float              F_VIEW_DEFAULT_END_X;
     static const float              F_VIEW_DEFAULT_START_X;
     static const float              F_VIEW_DEFAULT_START_Y;
+    static const int                I_BUTTON_ICON_MARGIN;
     static const int                I_CANVAS_DRAW_RATE;
     static const int                I_ENTRY_TEXT_SIZE;
     static const int                I_STATUS_TEXT_SIZE;
@@ -53,6 +54,9 @@ private:
     static float                    viewStartY;
     static float                    zoomScale;
     
+    static void                     drawCrossSign           (sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     drawPlusSign            (sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
+    static void                     drawMinusSign           (sgf::Context* contextPtr, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
     static void                     onAddEntryButtonEvent   (sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
     static void                     onEntryTextInputEvent   (std::wstring content, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
     static void                     onGraphsViewMouseEvent  (sgf::MouseEvent event, sgf::Vector2D position, sgf::Rectangle* instancePtr, sgf::Canvas* canvasPtr);
@@ -74,7 +78,7 @@ private:
     sgf::Rectangle                  rZoom;
     sgf::ScrollView                 svFunctions;
     sgf::TextProperties             tMousePosition;
-    sgf::TextProperties             tZoom;
+    sgf::TextProperties             tZoom;  
     sgf::VList                      vlToolbarButtons;
 
 public:

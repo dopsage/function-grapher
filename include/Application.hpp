@@ -13,7 +13,11 @@
 #include "SGF/VSlider.hpp"
 #include "FunctionEntry.hpp"
 
-/* DESC */
+/* Class that uses all other components in order to provide the function graher
+ * looks and behaviour. It also defines plenty of constant values that are used
+ * to give the application the desired look and feel. There is nothing much
+ * to say about it, go and see yourself ... I aimed to write the code in the
+ * cleanest way possible so others can read and understand. */
 class Application final
 {
 private:
@@ -88,5 +92,5 @@ public:
     int run();
 };
 
-#endif
+#endif	// _APPLICATION_HPP
 

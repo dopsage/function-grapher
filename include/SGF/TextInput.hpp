@@ -102,4 +102,4 @@ public:
 
 }
 
-#endif
+#endif	// _TEXTINPUT_HPP

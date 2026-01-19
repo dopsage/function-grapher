@@ -78,4 +78,4 @@ public:
 
 }
     
-#endif
+#endif	// _FUNCTIONPARSER_HPP

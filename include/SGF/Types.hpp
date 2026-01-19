@@ -14,4 +14,4 @@ namespace sgf
     struct  Vector2D    { float x, y; };
 }
 
-#endif
+#endif	// _TYPES_HPP

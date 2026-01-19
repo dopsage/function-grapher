@@ -35,4 +35,4 @@ public:
 
 }
 
-#endif
+#endif	// _BUTTON_HPP

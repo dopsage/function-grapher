@@ -12,7 +12,6 @@
 namespace sgf
 {
 
-/* DESC */
 struct FunctionProperties
 {
     // Constant
@@ -30,4 +29,4 @@ struct FunctionProperties
 
 }
     
-#endif
+#endif	// _FUNCTIONPROPERTIES_HPP

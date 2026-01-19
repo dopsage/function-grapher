@@ -12,7 +12,6 @@
 namespace sgf
 {
 
-/* DESC */
 struct TextProperties
 {
     // Constant
@@ -33,4 +32,4 @@ struct TextProperties
 
 }
     
-#endif
+#endif	// _TEXTPROPERTIES_HPP

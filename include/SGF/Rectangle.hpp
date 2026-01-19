@@ -101,4 +101,4 @@ public:
 
 }
 
-#endif
+#endif	// _RECTANGLE_HPP

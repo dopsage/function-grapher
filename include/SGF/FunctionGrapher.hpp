@@ -36,7 +36,14 @@ struct ViewProperties
     int     vsT;            // [units]  Vectical start tick
 };
 
-/* DESC */
+/* Uses canvas context graphics in order to render a 2-dimensional cartesian
+ * plane in bounds of rectangle which it identifies as. The plane contains
+ * horizontal and vertical lines that indicate whole numbers, additionally
+ * origin axes (y=0 and x=0) are marked red. The grapher defines its own
+ * plane (different than the canvas uses, which are pure screen coordinates)
+ * so the units of its graphing plane remain in tact.
+ * Personally, I noticed it can be used as some kind of a game engine specifically
+ * for the tile-based ones (: */
 class FunctionGrapher final : public Rectangle
 {
 private:
@@ -61,4 +68,4 @@ public:
 
 }
 
-#endif
+#endif	// _FUNCTIONGRAPHER_HPP

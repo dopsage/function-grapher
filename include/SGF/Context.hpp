@@ -15,7 +15,9 @@ namespace sgf
 
 class Canvas;
 
-/* DESC */
+/* Allows to draw over canvas, that is it. Every rectangle is passed a reference
+ * pointer to instance of Context stored in canvas so they can utilize it and
+ * implement custom styles. */
 class Context final
 {
     // Allow canvas pass the SFML window reference in order to draw on it
@@ -32,4 +34,4 @@ public:
 
 }
 
-#endif
+#endif	// _CONTEXT_HPP

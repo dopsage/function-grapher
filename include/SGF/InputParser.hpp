@@ -35,4 +35,4 @@ public:
 
 }
 
-#endif
+#endif	// _INPUTPARSER_HPP

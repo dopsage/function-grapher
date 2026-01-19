@@ -11,7 +11,11 @@
 #include "SGF/TextInput.hpp"
 #include "SGF/VList.hpp"
 
-/* DESC */
+/* Application-specific component that lets a user to input a math expression
+ * through TextInput instance. There is also a Button instance placed on
+ * the right of the input that may be customized to perform desired behaviour.
+ * In case of this application, the button serves as self-destructor - it removes
+ * the whole entry from list of them on click event. */
 class FunctionEntry final : public sgf::Rectangle
 {
 private:
@@ -36,4 +40,4 @@ public:
     void                        setVisible(bool visible)                        override;
 };
 
-#endif
+#endif	// _FUNCTIONENTRY_HPP

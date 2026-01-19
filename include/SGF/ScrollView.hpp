@@ -46,4 +46,4 @@ public:
 
 }
 
-#endif
+#endif	// _SCROLLVIEW_HPP

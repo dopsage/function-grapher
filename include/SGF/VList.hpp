@@ -39,4 +39,4 @@ public:
 
 }
 
-#endif
+#endif	// _VLIST_HPP

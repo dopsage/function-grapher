@@ -54,4 +54,4 @@ public:
 
 }
 
-#endif
+#endif	// _VSLIDER_HP

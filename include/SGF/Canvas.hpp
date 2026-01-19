@@ -21,7 +21,8 @@ namespace sgf
 
 /* Core of SGF, it facilitates rendering of a window and its contents in form of
  * simple rectangular areas (Rectangle instances) by wrapping SFML features in a
- * way that makes the framework intuitive and primitive (but simple).*/
+ * way that makes the framework intuitive and primitive (but simple). It also defines
+ * a Context instance which manages drawing over it, I advise looking at its module.*/
 class Canvas final
 {
 private:
@@ -70,4 +71,4 @@ public:
 
 }
 
-#endif
+#endif	// _CANVAS_HPP

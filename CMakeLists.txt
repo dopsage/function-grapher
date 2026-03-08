@@ -15,19 +15,6 @@ add_executable(
     src/Application.cpp
     src/FunctionEntry.cpp
     src/Main.cpp
-    src/SGF/Button.cpp
-    src/SGF/Canvas.cpp
-    src/SGF/Context.cpp
-    src/SGF/FunctionGrapher.cpp
-    src/SGF/FunctionParser.cpp
-    src/SGF/FunctionProperties.cpp
-    src/SGF/InputParser.cpp
-    src/SGF/Rectangle.cpp
-    src/SGF/ScrollView.cpp
-    src/SGF/TextInput.cpp
-    src/SGF/TextProperties.cpp
-    src/SGF/VList.cpp
-    src/SGF/VSlider.cpp
 )
 
 # Copy resources next to the executable so it can use them
@@ -43,5 +30,6 @@ add_custom_command(
 # Include local headers
 target_include_directories(${PROJECT_EXEC} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
-# Link SFML libraries
-target_link_libraries(${PROJECT_EXEC} sfml-graphics sfml-window sfml-system)
+# Link SFML and SGF libraries
+target_link_directories(${PROJECT_EXEC} PRIVATE ${CMAKE_SOURCE_DIR}/lib)
+target_link_libraries  (${PROJECT_EXEC} sfml-graphics sfml-window sfml-system sgf)
